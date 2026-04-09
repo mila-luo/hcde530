@@ -1,0 +1,26 @@
+Always write clean, readable code
+Use comments to explain what code does
+Prefer simple solutions over complex ones
+
+## Project directory structure
+
+Keep this tree in sync with the repo. When you add, remove, or rename top-level items, week folders, or other tracked project files, update this section in the same edit (or immediately after).
+
+```
+hcde530code/
+├── .cursorrules          # Pointer: see week2/.cursorrules when workspace is repo root
+├── README.md
+├── week2.md              # A2-style competency write-up (also see week2/week2.md for long form)
+└── week2/
+    ├── .cursorrules          # Cursor / AI project rules (this file)
+    ├── PROJECT_CONTEXT.md    # Who this is for, constraints, assistant tone
+    ├── .gitignore
+    ├── app_reviews.csv
+    ├── app_review_summary.py
+    ├── demo_responses.csv
+    ├── demo_word_count.py
+    └── week2.md              # Week 2 reflection: Competency 2
+```
+
+Notes:
+- `week2/` is also its own Git repository (nested `.git`); the repo root may be a separate Git repo—respect whichever root the user is working in.

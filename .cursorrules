@@ -1,0 +1,5 @@
+Project rules and designer context live under **week2/**:
+- `week2/.cursorrules` — coding style and directory map
+- `week2/PROJECT_CONTEXT.md` — audience, constraints, how assistants should help
+
+Prefer opening the **week2** folder as the workspace when working on weekly assignments so Cursor loads `week2/.cursorrules` automatically.
