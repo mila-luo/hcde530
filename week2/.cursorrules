@@ -17,8 +17,11 @@ hcde530code/
     ├── .gitignore
     ├── app_reviews.csv
     ├── app_review_summary.py
+    ├── clean_responses.py
+    ├── count_roles.py
     ├── demo_responses.csv
     ├── demo_word_count.py
+    ├── responses.csv           # sample input for clean_responses.py
     └── week2.md              # Week 2 reflection: Competency 2
 ```
 
