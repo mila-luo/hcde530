@@ -11,6 +11,9 @@ hcde530code/
 ├── .cursorrules          # Pointer: see week2/.cursorrules when workspace is repo root
 ├── README.md
 ├── week2.md              # A2-style competency write-up (also see week2/week2.md for long form)
+├── week3/
+│   ├── week3_analysis_buggy.py
+│   └── week3_survey_messy.csv
 └── week2/
     ├── .cursorrules          # Cursor / AI project rules (this file)
     ├── PROJECT_CONTEXT.md    # Who this is for, constraints, assistant tone
