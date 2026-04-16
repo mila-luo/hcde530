@@ -1,4 +1,5 @@
 import csv
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -15,9 +16,14 @@ with open(filename, newline="", encoding="utf-8") as f:
 
 # --- Count responses by role (same role, different spelling/casing = one bucket) -
 def prettify_role_label(label):
-    """Make role labels readable after messy casing in the CSV."""
+    """Make role labels readable after messy casing in the CSV.
+
+    str.title() turns UX-style roles into 'Ux ...'; we normalize the acronym to
+    'UX'. A plain replace('Ux ', ...) misses a lone 'ux' (becomes 'Ux') because
+    there is no following space. Using a whole-word pattern fixes that.
+    """
     t = label.strip().title()
-    return t.replace("Ux ", "UX ")
+    return re.sub(r"\bUx\b", "UX", t)
 
 
 def parse_experience_years(raw):
