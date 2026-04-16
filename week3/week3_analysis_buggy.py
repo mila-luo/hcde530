@@ -1,3 +1,7 @@
+# Survey cleanup + quick summaries for HCDE 530 Week 3.
+# This file reads a messy CSV of fake survey responses, prints a few stats to the
+# terminal (roles, average experience, top satisfaction scores), then writes a
+# cleaned CSV you can open in Excel or reuse in another script.
 import csv
 import re
 from collections import Counter
@@ -37,6 +41,13 @@ def write_cleaned_csv(rows, output_path):
     ``newline=""`` and ``encoding="utf-8"`` so line endings and characters round-trip
     cleanly.
     """
+    # --- Cleaning step (this function) --------------------------------------------
+    # Turn each in-memory row (a dict keyed by column name) into a "clean" version:
+    # same columns as the input file, but trimmed text, nicer role wording, years
+    # as a real number when we can parse them, and missing names replaced so the
+    # sheet never has an empty name cell. We collect all cleaned rows in a list
+    # first, then write them in one go.
+
     # Decide column order: match the input file header (first row's keys), or the
     # standard survey columns if there are no rows to infer from.
     if rows:
@@ -54,7 +65,8 @@ def write_cleaned_csv(rows, output_path):
             "response_text",
         ]
 
-    # Build one normalized dict per input row so we only write cleaned values.
+    # Loop over every survey response: copy it into a new dict, field by field,
+    # so we never edit the original rows still used for the printed summaries above.
     normalized_rows = []
     for row in rows:
         # Strip leading/trailing whitespace from every field for consistent output.
@@ -76,7 +88,11 @@ def write_cleaned_csv(rows, output_path):
 
         normalized_rows.append(out)
 
-    # Write the cleaned table to disk for sharing or further analysis.
+    # --- What gets written to the output CSV --------------------------------------
+    # A brand-new file at output_path: UTF-8 text, one header line (same column
+    # names as the messy input), then one data line per person. Quotes inside
+    # answers are handled by the csv module so commas in free text do not break
+    # the columns when you open the file in a spreadsheet.
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -85,6 +101,8 @@ def write_cleaned_csv(rows, output_path):
 
 def main():
     # --- Load the survey data (CSV sits next to this script) ------------------------
+    # Read the whole file into a list of dicts so we can loop over the same answers
+    # several times below (counts, averages, top scores, then export).
     BASE_DIR = Path(__file__).resolve().parent
     filename = BASE_DIR / "week3_survey_messy.csv"
     rows = []
@@ -95,6 +113,8 @@ def main():
             rows.append(row)
 
     # --- Count responses by role (same role, different spelling/casing = one bucket) -
+    # Walk every row and bucket by role text treated case-insensitively, while
+    # remembering one "pretty" spelling per bucket for printing.
     role_counts = Counter()
     role_label = {}
 
@@ -112,6 +132,7 @@ def main():
         print(f"  {prettify_role_label(role_label[key])}: {count}")
 
     # --- Average years of experience (skip blanks and junk we cannot parse) -------
+    # Second pass: add up numeric years where we can interpret the cell, then divide.
     total_experience = 0
     experience_count = 0
     for row in rows:
@@ -128,6 +149,8 @@ def main():
         print("\nAverage years of experience: (no numeric values found)")
 
     # --- Top 5 highest satisfaction scores -----------------------------------------
+    # Third pass: keep only rows with a valid integer score, pair name + score,
+    # sort high-to-low, show the first five.
     scored_rows = []
     for row in rows:
         raw_score = (row.get("satisfaction_score") or "").strip()
@@ -148,6 +171,8 @@ def main():
         print(f"  {name}: {score}")
 
     # --- Save a cleaned copy of the survey next to the messy input file ------------
+    # Same rows we analyzed, run through write_cleaned_csv, saved as a new file
+    # beside week3_survey_messy.csv for grading, charts, or sharing.
     write_cleaned_csv(rows, BASE_DIR / "week3_survey_cleaned.csv")
 
 
