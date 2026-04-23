@@ -1,5 +1,7 @@
 """Fetch a 5-day / 3-hour Seattle forecast from OpenWeather and print a simple table.
 
+Also writes ``forecast_output.csv`` in the same folder as this script (UTF-8, five columns).
+
 Requires: pip install python-dotenv
 Copy .env.example to .env and set OPENWEATHER_API_KEY to your real key.
 
@@ -8,6 +10,7 @@ How to run (macOS often has no ``python`` command — use ``python3``):
   From week4/:     python3 weather_forecast.py
 """
 
+import csv
 import json
 import os
 import ssl
@@ -48,15 +51,19 @@ def main() -> None:
         sys.exit(1)
 
     # --- Build the forecast URL and download JSON -------------------------------
-    # The URL points at OpenWeather’s “5 day / 3 hour forecast” service. That means:
-    # you get many small forecasts (one every three hours) for roughly the next five
-    # days for the place you name. We pass the city as q=Seattle, your key as appid,
-    # and units=imperial so temperatures come back in Fahrenheit (not Celsius).
+    # Endpoint: OpenWeather “2.5/forecast” returns JSON with ~40 forecast steps (every
+    # three hours for about five days) for one location, plus extras (city id, sunrise,
+    # coordinate bounds, etc.). Each step is one object inside the top-level "list"
+    # array; that is what we parse below—not the whole payload, only what people care
+    # about for planning and comparison.
     base = "https://api.openweathermap.org/data/2.5/forecast"
     query = urllib.parse.urlencode(
         {
+            # q: free-text city (and optional country code); the API geocodes it server-side.
             "q": "Seattle",
+            # appid: your OpenWeather API key; required so the server can authorize the request.
             "appid": api_key,
+            # units: "imperial" → Fahrenheit for temps and US-style wind; "metric" would be °C.
             "units": "imperial",
         }
     )
@@ -66,35 +73,48 @@ def main() -> None:
         raw = resp.read().decode("utf-8")
 
     # --- Turn the response body into Python dicts/lists -------------------------
-    # The API returns one big JSON object. Besides metadata (city name, country,
-    # coordinates, etc.), the important part is "list": an array where each item
-    # is one three-hour step—timestamp, air temperature, conditions text, and so on.
+    # Same JSON the browser would get: one dict with keys like "cod", "message", "cnt",
+    # "city", and "list". We only iterate "list"; each element has nested "main",
+    # "weather", "wind", "clouds", etc. We skip unused keys to keep outputs small and
+    # aligned with what a human reader or spreadsheet needs.
     data = json.loads(raw)
 
-    # --- Walk each forecast time slot in the API payload ------------------------
-    # We only need a handful of values per step to print a readable table (and to
-    # match what the assignment asks for). OpenWeather nests some of those values.
+    # --- Walk each forecast time slot; build one flat dict per row for print + CSV --
     rows = []
     for entry in data.get("list") or []:
-        # "main" holds bulk numbers for that moment (temp, feels-like, humidity, …).
+        # entry["main"]: object with temps, pressure, humidity for this time step.
         main = entry.get("main") or {}
-        # "weather" is a list of condition objects; we use the first one’s short text.
+        # entry["weather"]: list of {id, main, description, icon}; API may send more than one tag.
         weather_list = entry.get("weather") or []
         first_weather = weather_list[0] if weather_list else {}
         rows.append(
             {
-                # When this step applies, as a plain string (e.g. "2025-04-23 12:00:00").
-                "dt_txt": entry.get("dt_txt", ""),
-                # Actual air temperature in °F (because we asked for imperial units).
-                "temp": main.get("temp"),
-                # “Feels like” temperature—wind/humidity adjusted for human comfort.
-                "feels_like": main.get("feels_like"),
-                # Short phrase for sky/conditions (e.g. “light rain”, “clear sky”).
+                # entry["dt_txt"]: local-style date/time string for this step (no Unix math in CSV).
+                # Chosen so users see *when* each number applies—trust and sorting in spreadsheets.
+                "date_time": entry.get("dt_txt", ""),
+                # main["temp"]: dry-bulb air temperature (°F here). Chosen as the headline number
+                # people compare across hours; column name temp_f states the unit in the file header.
+                "temp_f": main.get("temp"),
+                # main["feels_like"]: apparent temperature (wind/humidity). Chosen because lived
+                # comfort often diverges from raw temp—better match for clothing and outdoor plans.
+                "feels_like_f": main.get("feels_like"),
+                # weather[0]["description"]: short English phrase for conditions. Chosen over raw
+                # codes because humans scan words faster; first list item is the primary condition.
                 "description": first_weather.get("description", ""),
-                # Relative humidity as a percentage (0–100).
+                # main["humidity"]: relative humidity %. Chosen as a second comfort signal beside temp.
                 "humidity": main.get("humidity"),
             }
         )
+
+    # --- Save the same rows to CSV (same folder as this script) -------------------
+    # DictWriter quotes fields that contain commas (e.g. long descriptions) automatically.
+    _week4_dir = Path(__file__).resolve().parent
+    csv_path = _week4_dir / "forecast_output.csv"
+    _csv_fields = ["date_time", "temp_f", "feels_like_f", "description", "humidity"]
+    with csv_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=_csv_fields)
+        writer.writeheader()
+        writer.writerows(rows)
 
     # --- Print a fixed-width table in the terminal --------------------------------
     # Pad each column to a fixed width so times, numbers, and text line up in the shell.
@@ -113,9 +133,9 @@ def main() -> None:
     print(header)
     print("-" * len(header))
     for r in rows:
-        when = str(r["dt_txt"])
-        temp = r["temp"]
-        feels = r["feels_like"]
+        when = str(r["date_time"])
+        temp = r["temp_f"]
+        feels = r["feels_like_f"]
         desc = str(r["description"])
         hum = r["humidity"]
         temp_s = f"{temp:.1f}" if isinstance(temp, (int, float)) else str(temp)
