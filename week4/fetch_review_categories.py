@@ -13,6 +13,9 @@ import urllib.request
 from pathlib import Path
 
 
+# --- HTTPS setup ---------------------------------------------------------------
+# Some Python installs on macOS do not ship a full CA bundle; certifi supplies
+# trusted root certificates so urlopen can verify the API server's certificate.
 def _ssl_context() -> ssl.SSLContext:
     try:
         import certifi
@@ -26,6 +29,9 @@ REVIEWS_PATH = "/reviews"
 OUTPUT_CSV = Path(__file__).resolve().parent / "review_categories_helpful_votes.csv"
 
 
+# --- One request to the API ----------------------------------------------------
+# Ask the server for a single "page" of reviews (offset = how many to skip,
+# limit = how many to return). Response is JSON: metadata plus a reviews array.
 def fetch_page(offset: int, limit: int) -> dict:
     """GET one page of reviews; returns parsed JSON (total, returned, offset, limit, reviews)."""
     query = urllib.parse.urlencode({"offset": offset, "limit": limit})
@@ -36,6 +42,9 @@ def fetch_page(offset: int, limit: int) -> dict:
 
 
 def main() -> None:
+    # --- Download every review (pagination) ------------------------------------
+    # The API returns at most `limit` rows per call. Keep requesting with a higher
+    # offset until we have seen all rows (offset reaches total from the server).
     limit = 50
     offset = 0
     rows = []
@@ -57,9 +66,15 @@ def main() -> None:
         if offset >= total or returned == 0:
             break
 
+    # --- Terminal output --------------------------------------------------------
+    # Show category and helpful vote count for each row so you can eyeball the
+    # data before opening the CSV.
     for row in rows:
         print(f"{row['category']}: {row['helpful_votes']} helpful votes")
 
+    # --- Save a small CSV next to this script -----------------------------------
+    # Only two columns: research/tool category and helpful vote count, one line
+    # per review, UTF-8 text for spreadsheets or follow-on Python scripts.
     fieldnames = ["category", "helpful_votes"]
     with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)  # newline="" avoids blank lines on Windows-style CSVs
@@ -69,6 +84,8 @@ def main() -> None:
     print(f"\nWrote {len(rows)} rows to {OUTPUT_CSV}")
 
 
+# --- Run from terminal or Cursor ----------------------------------------------
+# Wrap main() so HTTP/network failures print a short message before the traceback.
 if __name__ == "__main__":
     try:
         main()
