@@ -4,6 +4,8 @@
 
 I can integrate a **real web API in Python** end to end: I build the request URL with query parameters, send an HTTPS GET with the standard library (`urllib`), and handle the response safely (including SSL context when needed). I **load my API key from a `.env` file** using `python-dotenv`, resolve the path next to the script so the program works from different working directories, and keep secrets out of version control. I **parse JSON** from the response body with `json.loads` and treat the result as nested Python structures. I can **extract specific fields from nested data**—for example walking `data["list"]`, then for each forecast step reading top-level keys like `dt_txt`, nested objects such as `main` for `temp`, `feels_like`, and `humidity`, and the first element of the `weather` array for a human-readable `description`—so downstream code (like printing a table) only sees the slice of the payload that matters.
 
+Before I wrote `weather_forecast.py`, I read OpenWeather’s official **5 Day / 3 Hour Forecast** documentation at [https://openweathermap.org/forecast5](https://openweathermap.org/forecast5) to confirm the `https://api.openweathermap.org/data/2.5/forecast` endpoint, which query parameters are required or optional (`q`, `appid`, `units`, and others listed there), and how the JSON response is laid out—especially the `list` array of forecast objects and the nested `main` and `weather` structures—so my URL, parsing, and field choices aligned with the published contract instead of guesswork.
+
 ---
 
 ## B. HCD reflection
