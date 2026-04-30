@@ -1,64 +1,48 @@
 # Week 3 — Competency reflection (HCDE 530)
 
-Reflections for HCDE 530 — Week 3. *UX practitioner perspective; not a software engineer.*
+*HCDE 530 — UX practitioner perspective, not a software engineer.*
 
-## What this week’s work was for
+## What this week was for
 
-Practice working with **messy survey-style data in Python**: read a CSV, summarize it in the terminal, and **export a cleaned CSV** that is easier to reuse or hand off. The point is to get comfortable with **reading errors, understanding what Python is asking for, and fixing the script** with help from documentation and tools like Cursor—not to ship production software.
+Read a **messy survey CSV** in Python, print summaries in the terminal, **export a cleaned CSV**, and practice **reading tracebacks**, looking up fixes, and re-running—not shipping production code.
 
-## What I did this week (evidence)
+## Evidence
 
-- **`week3_analysis_buggy.py`** — load `week3_survey_messy.csv`, print role counts, average years of experience, top satisfaction scores, then write `week3_survey_cleaned.csv` via `write_cleaned_csv`.
-- **`week3_survey_messy.csv` / `week3_survey_cleaned.csv`** — input data and cleaned output for comparison.
-- **Comments in the script** — plain-English `#` notes at the top and around the main loops and cleaning step (same spirit as Week 2: scan the file and see load → summaries → export).
+- **`week3_analysis_buggy.py`** — load `week3_survey_messy.csv`; role counts, average experience, top satisfaction scores; `write_cleaned_csv` → `week3_survey_cleaned.csv`.
+- **`week3_survey_messy.csv` / `week3_survey_cleaned.csv`** — input vs cleaned output.
+- **`#` comments** in the script — load → summaries → export, same spirit as Week 2.
 
-## Debugging: two real bugs (not just a workflow)
+## Debugging: three bugs
 
-I still follow the same habit—**read the traceback or wrong output**, **map it to one line or one value**, **change one thing**, **re-run**—but these are two concrete failures I hit while getting `week3_analysis_buggy.py` to match the messy survey.
+**Names:** (1) **`ValueError` / `"fifteen"`** in `experience_years`. (2) **Top-5 satisfaction** — default ascending sort + first five rows = **lowest** scores; fixed with **`reverse=True`**. (3) **`Ux` vs `UX`** — `str.title()` plus a **`replace` that depended on a trailing space**; fixed with **`re.sub(r"\bUx\b", "UX", ...)`**.
 
-### 1. `ValueError` when averaging years of experience
+**Habit:** Read the traceback or wrong output → tie it to **one line or one value** → **one change** → re-run.
 
-**What it was.** I called `int()` on the `experience_years` column so I could sum and divide for an average. One row in the messy survey used a **word** instead of digits.
+### 1. `ValueError` when averaging experience
 
-**What I saw.** Python stopped with a traceback whose bottom line looked like:
+`int()` on `experience_years` crashed on `'fifteen'` (`ValueError: invalid literal for int() with base 10: 'fifteen'`). **`int()` does not parse English words**—only digit-style strings—so parsing belongs in **`try` / `except ValueError`**, with a small map for `"fifteen"` → `15` and **`None`** for anything else so bad rows skip the average instead of killing the script. I also set that CSV cell to **`15`** for a cleaner handoff; the code still handles the word if it comes back.
 
-`ValueError: invalid literal for int() with base 10: 'fifteen'`
+### 2. “Top 5” showed the wrong scores
 
-So the data had `"fifteen"` where `int()` expected a string of digits like `"15"`.
+I sorted scores **ascending** (default) and took **`[:5]`**, so the script printed the **five lowest** satisfactions. **Fix:** sort with **`reverse=True`** (or take the last five if sorted low-to-high), then re-check against the CSV.
 
-**What that showed me about Python.** `int()` only knows how to parse numeric text in the usual digit form (plus optional sign, etc.). It does **not** guess English words; a non-matching string is a hard error, not a silent `None`. That is why a lot of data-cleaning code wraps parsing in `try` / `except` or checks the string before converting.
+### 3. Role labels: `Ux Designer` instead of `UX Designer`
 
-**How I fixed it.** I wrapped the conversion in `try` / `except ValueError`. In the `except` branch I mapped the one known typo-style answer (`"fifteen"` → `15`) with a small dictionary lookup, and returned `None` for anything else I still could not parse so those rows are skipped in the average instead of crashing the whole script.
+**Logic bug, not a traceback.** `str.title()` made **`Ux`**; **`replace("Ux ", "UX ")`** only matched when a **space followed** `Ux`. **`str.replace` is literal** and does not know “UX” is an acronym. **`re.sub(r"\bUx\b", "UX", ...)`** fixes every standalone **`Ux`** regardless of what comes after.
 
-**What I did with the source file.** After I understood the bug, I also **manually edited the messy CSV** so that row’s `experience_years` cell reads **`15`** instead of the word **`fifteen`**. I mention that on purpose: the **debugging story** is about what broke when the cell was still text, and the **code** still defends against that case, but the **CSV I submit** is a little cleaner so graders (or future me) do not have to trip the error just to open the file. The important artifact for the assignment is the script’s behavior, not leaving a landmine in the data forever.
+## What improved
 
-### 2. Wrong role labels after “prettifying” casing (`Ux` instead of `UX`)
+Errors feel more like **signal than failure**: map the message to a line, pick a small idiomatic fix (`int` guard, **sort direction**, **word-boundary regex**), verify by re-running and diffing output.
 
-**What it was.** A **logic / string-handling bug**, not a traceback. I used `str.title()` so messy roles like `ux designer` would look like titles, then tried to fix the acronym with a simple string replace.
+## Gaps
 
-**What I saw.** The terminal summary grouped counts correctly, but the printed label for some roles looked wrong—for example **`Ux Designer`** (capital U, lowercase x) instead of **`UX Designer`**. That came from `str.title()` turning `ux` into `Ux`, and my first fix (`replace("Ux ", "UX ")`) only worked when there was a **space after** `Ux`, so a lone token like `Ux` at the end of a label never got corrected.
+- **Memory for patterns** — e.g. empty string vs `None`, CSV **`newline=""`** — still often from docs or prompts.
+- **Data vs code** — messy rows on purpose; I want a faster read on whether the bug is my script or the field.
 
-**What that showed me about Python.** `str.title()` applies a mechanical rule (word boundaries and capitalization); it has no idea that **“UX” is a special acronym**. And `str.replace` is literal: it only changes the exact substring you give it, so partial fixes that depend on spaces or word order break as soon as the data shape changes.
+## One line (portfolio / critique)
 
-**How I fixed it.** I switched to a **whole-word** pattern with `re.sub(r"\bUx\b", "UX", ...)` so every standalone `Ux` becomes `UX` whether or not there is a space after it. That matches how I actually want to think about the problem: “find this word as a word,” not “find this exact slice of characters.”
-
-### How this fits my overall debugging habit
-
-Even with named bugs, the loop is the same: **locate the error or wrong output**, **use Cursor or the docs to translate it into plain language**, **apply a small, testable fix** (guard `int()`, or use a regex), then **re-run and diff the cleaned CSV** so I know the script and the data both behave.
-
-## What I can do now that I couldn’t before (or do more confidently)
-
-I’m getting more comfortable treating an error as **information to act on** instead of a dead end: read the message, map it to a line or idea, ask what idiomatic Python looks like for that situation, change one thing, run again.
-
-## Gaps or next steps
-
-- **Remembering patterns** — I still lean on prompts and search; I want a few “go-to” moves (e.g. empty strings vs `None`, CSV `newline=""`) to stick without looking every time.
-- **Knowing when the data is wrong vs the code** — some rows are messy on purpose; I want to separate “bug in script” from “bad or missing field in the survey.”
-
-## One line for a portfolio or critique
-
-**Draft:** I can **work through Python errors systematically**—find where they point, **use Cursor to interpret the message and suggest patterns**, and **verify the fix** by re-running the script and checking the output files.
+**Draft:** I can **step through Python errors**—trace where they point, **use Cursor for patterns and docs**, and **confirm** by re-running and checking exported files.
 
 ---
 
-*Interview notes (for future edits): audience, constraints, and “how I want code to look” can be added in the next pass.*
+*Interview notes: add audience, constraints, “how I want code to look” when useful.*
