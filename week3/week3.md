@@ -16,7 +16,7 @@ Practice working with **messy survey-style data in Python**: read a CSV, summari
 
 I still follow the same habit—**read the traceback or wrong output**, **map it to one line or one value**, **change one thing**, **re-run**—but these are two concrete failures I hit while getting `week3_analysis_buggy.py` to match the messy survey.
 
-### Bug 1 — `ValueError` when averaging years of experience
+### 1. `ValueError` when averaging years of experience
 
 **What it was.** I called `int()` on the `experience_years` column so I could sum and divide for an average. One row in the messy survey used a **word** instead of digits.
 
@@ -32,7 +32,7 @@ So the data had `"fifteen"` where `int()` expected a string of digits like `"15"
 
 **What I did with the source file.** After I understood the bug, I also **manually edited the messy CSV** so that row’s `experience_years` cell reads **`15`** instead of the word **`fifteen`**. I mention that on purpose: the **debugging story** is about what broke when the cell was still text, and the **code** still defends against that case, but the **CSV I submit** is a little cleaner so graders (or future me) do not have to trip the error just to open the file. The important artifact for the assignment is the script’s behavior, not leaving a landmine in the data forever.
 
-### Bug 2 — wrong role labels after “prettifying” casing (`Ux` instead of `UX`)
+### 2. Wrong role labels after “prettifying” casing (`Ux` instead of `UX`)
 
 **What it was.** A **logic / string-handling bug**, not a traceback. I used `str.title()` so messy roles like `ux designer` would look like titles, then tried to fix the acronym with a simple string replace.
 
