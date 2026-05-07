@@ -1,5 +1,7 @@
 # Week 5 — A5 (HCDE 530)
 
+**Layout:** This folder is **`week5/A5/`** — API fetch + CSV + quick pandas checks. **MP1** (notebook + competency write-up) lives under **`week6/MP1/`**. **A6** chart exports live under **`week6/A6/`**.
+
 ## What this folder contains
 
 - **`fetch_bread_recipes.py`** — Calls Spoonacular **complexSearch** for healthy-oriented bread recipes, normalizes fields, writes **`healthy_bread_recipes.csv`**. API key lives in **`.env`** (`SPOONACULAR_API_KEY`), loaded with **python-dotenv**; `.env` stays out of git via the repo **`.gitignore`**.

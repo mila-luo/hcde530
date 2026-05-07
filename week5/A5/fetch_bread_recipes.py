@@ -96,7 +96,7 @@ def fetch_recipes(api_key: str, number: int = 100) -> list[dict]:
 def main() -> None:
     if not API_KEY:
         print(
-            "Missing Spoonacular key. Add SPOONACULAR_API_KEY to week5/A5/.env (see python-dotenv).",
+            "Missing Spoonacular key. Add SPOONACULAR_API_KEY to .env next to this script (see python-dotenv).",
             file=sys.stderr,
         )
         sys.exit(1)
