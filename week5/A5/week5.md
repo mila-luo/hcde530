@@ -1,17 +1,29 @@
 # Week 5 — A5 (HCDE 530)
 
-**Layout:** This folder is **`week5/A5/`** — API fetch + CSV + quick pandas checks. **MP1** (notebook + competency write-up) lives under **`week6/MP1/`**. **A6** chart exports live under **`week6/A6/`**.
+**Layout:** This folder is **`week5/A5/`** — API fetch, CSV export, and quick pandas checks. **MP1** (notebook + competency write-up) lives under **`week6/MP1/`**; **A6** chart exports live under **`week6/A6/`**.
 
-## What this folder contains
+## Competency Claims
 
-- **`fetch_bread_recipes.py`** — Calls Spoonacular **complexSearch** for healthy-oriented bread recipes, normalizes fields, writes **`healthy_bread_recipes.csv`**. API key lives in **`.env`** (`SPOONACULAR_API_KEY`), loaded with **python-dotenv**; `.env` stays out of git via the repo **`.gitignore`**.
-- **`analysis.py`** — Loads the CSV with **pandas**, prints **shape**, **numeric summaries** (`describe`), **missing-value counts**, and the **top five recipes by `health_score`** so I can sanity-check the pull before any deeper modeling or viz.
-- **`requirements.txt`** — `python-dotenv`, `requests`, `pandas` (requests is available for future refactors; the fetch script currently uses **`urllib`** from the standard library).
+### C3 — Data Collection and Access
 
-## Competency note
+I accessed live recipe data programmatically using the Spoonacular API. Authentication is handled securely through a .env file loaded with python-dotenv so the API key never appears in code or git history. fetch_bread_recipes.py sends an HTTPS request, parses the JSON response, flattens nested nutrition fields into columns, and writes the result to healthy_bread_recipes.csv.
 
-I can **repeat the Week 4 pattern** on a different API and domain: **authenticate from environment**, **request JSON over HTTPS**, **flatten nested nutrition into columns**, and **persist a table to CSV**. The analysis step mirrors how I would treat any hand-off file in practice: **load → describe → spot gaps** (for example empty `prep_minutes` / `cook_minutes` or ingredient lists when the bulk search payload is thinner than a single-recipe call).
+### C4 — Data Cleaning and Preparation
 
-## HCD angle (short)
+I identified and documented missing values in prep_minutes, cook_minutes, and ingredients — columns that are sparse in Spoonacular's bulk search payload. analysis.py loads the CSV, prints shape, runs describe(), and counts nulls with isnull().sum() so any analyst picking up this file knows exactly where the gaps are before doing any deeper work.
 
-Bread search results are **labeled for healthiness**, but numbers like **calories and sugar per serving** are what support real tradeoffs for eaters (energy, blood sugar, satiety). Pulling both **scores** and **macros** into one sheet is a small version of “**API richness → human decision slice**”: designers and analysts still have to choose **which columns** become UI or policy, and **which gaps** (missing prep times, sparse ingredients) get follow-up or disclaimers instead of silent trust in the row count alone.
+### C5 — Data Analysis with Pandas
+
+analysis.py answers three specific questions about the dataset: which recipes have the highest health scores, where the missing values are, and what the distribution of key nutrition columns looks like. Each operation is commented in plain English explaining what it tells us about the data — not just what the code does.
+
+### C6 — Connecting Data to HCD Practice
+
+Bread recipes are labeled "healthy" by the API, but labels alone don't support real user decisions. Pulling both health scores and macros (calories, sugar, fiber) into one table mirrors a common HCD research step: making API richness actionable for people who need to compare tradeoffs — energy, blood sugar, satiety — rather than trusting a single score.
+
+## HCD angle
+
+Bread search results are **labeled for healthiness**, but numbers like **calories and sugar per serving** are what support real tradeoffs for eaters (energy, blood sugar, satiety). Pulling both **scores** and **macros** into one sheet is a small version of "API richness → human decision slice": designers and analysts still have to choose **which columns** become UI or policy, and **which gaps** (missing prep times, sparse ingredients) get follow-up or disclaimers instead of silent trust in the row count alone.
+
+## Code Documentation
+
+Each function and key block in fetch_bread_recipes.py and analysis.py includes inline # comments explaining what the code is doing and why — for example, why nutrition fields need to be extracted from a nested list rather than read as top-level keys, and what a missing prep_minutes value means for downstream analysis.
