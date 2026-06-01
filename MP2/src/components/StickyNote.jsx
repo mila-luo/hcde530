@@ -5,8 +5,22 @@ function resizeTextarea(textarea) {
   textarea.style.height = `${textarea.scrollHeight}px`
 }
 
+function truncateQuote(quote, maxWords = 20) {
+  const words = quote.trim().split(/\s+/).filter(Boolean)
+
+  if (words.length <= maxWords) {
+    return { display: quote, isTruncated: false }
+  }
+
+  return {
+    display: `${words.slice(0, maxWords).join(' ')}...`,
+    isTruncated: true,
+  }
+}
+
 export default function StickyNote({
   theme,
+  className = '',
   onDelete,
   onUpdateLabel,
   onUpdateQuote,
@@ -56,41 +70,50 @@ export default function StickyNote({
     onUpdateQuote(theme.id, quoteIndex, draftQuotes[quoteIndex].trim())
   }
 
+  const mentionLabel =
+    theme.count === 1 ? '1 mention' : `${theme.count ?? 0} mentions`
+
   return (
     <article
-      className="rounded-xl p-5"
+      className={`rounded-xl p-5 ${className}`}
       style={{ backgroundColor: theme.color }}
     >
       <div className="flex items-start justify-between gap-3">
-        {isEditing ? (
-          <input
-            type="text"
-            value={draftLabel}
-            onChange={(event) => setDraftLabel(event.target.value)}
-            onBlur={saveLabel}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                saveLabel()
-              }
-            }}
-            autoFocus
-            className="min-w-0 w-full flex-1 border-none bg-transparent p-0 font-mono text-sm font-medium text-gray-800 outline-none focus:outline-none focus:ring-0"
-          />
-        ) : (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsEditing(true)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                setIsEditing(true)
-              }
-            }}
-            className="min-w-0 flex-1 cursor-pointer font-mono text-sm font-medium text-gray-800"
-          >
-            {theme.label}
-          </span>
-        )}
+        <div className="min-w-0 flex-1">
+          {isEditing ? (
+            <input
+              type="text"
+              value={draftLabel}
+              onChange={(event) => setDraftLabel(event.target.value)}
+              onBlur={saveLabel}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  saveLabel()
+                }
+              }}
+              autoFocus
+              className="min-w-0 w-full border-none bg-transparent p-0 font-mono text-sm font-medium text-gray-800 outline-none focus:outline-none focus:ring-0"
+            />
+          ) : (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsEditing(true)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  setIsEditing(true)
+                }
+              }}
+              className="block cursor-pointer font-mono text-sm font-medium text-gray-800"
+            >
+              {theme.label}
+            </span>
+          )}
+
+          {theme.count != null && (
+            <p className="mt-1 text-xs text-gray-500">{mentionLabel}</p>
+          )}
+        </div>
 
         <button
           type="button"
@@ -119,8 +142,10 @@ export default function StickyNote({
       <div className="my-3 border-t border-gray-400/30" />
 
       <div className="space-y-2 text-sm font-normal text-gray-700">
-        {theme.quotes.map((quote, quoteIndex) =>
-          editingQuotes[quoteIndex] ? (
+        {theme.quotes.map((quote, quoteIndex) => {
+          const { display, isTruncated } = truncateQuote(quote)
+
+          return editingQuotes[quoteIndex] ? (
             <textarea
               key={`${theme.id}-quote-${quoteIndex}`}
               ref={(element) => {
@@ -152,6 +177,7 @@ export default function StickyNote({
               key={`${theme.id}-quote-${quoteIndex}`}
               role="button"
               tabIndex={0}
+              title={isTruncated ? quote : undefined}
               onClick={() => startEditingQuote(quoteIndex)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -160,10 +186,10 @@ export default function StickyNote({
               }}
               className="block w-full cursor-pointer"
             >
-              {quote}
+              {display}
             </span>
-          ),
-        )}
+          )
+        })}
       </div>
     </article>
   )

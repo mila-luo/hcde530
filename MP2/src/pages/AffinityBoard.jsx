@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StickyNote from '../components/StickyNote.jsx'
 import { useAffinity } from '../hooks/useAffinity.js'
 import { generateThemes } from '../lib/claude.js'
+import { applyThemeRanking } from '../lib/themes.js'
 
 const NOTES_STORAGE_KEY = 'mp2_session_notes'
 
-export default function AffinityBoard({ onNavigate }) {
-  void onNavigate
+const ghostButtonClass =
+  'rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-white'
 
+export default function AffinityBoard({ onNavigate, freshSession = false }) {
   const {
     themes,
     addTheme,
@@ -15,10 +17,19 @@ export default function AffinityBoard({ onNavigate }) {
     updateThemeLabel,
     updateThemeQuote,
     replaceThemes,
+    clearThemes,
   } = useAffinity()
   const [inputSource, setInputSource] = useState('paste')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (freshSession) {
+      clearThemes()
+    }
+  }, [freshSession, clearThemes])
+
+  const sortedThemes = applyThemeRanking(themes)
 
   const handleGenerateThemes = async () => {
     const notes = localStorage.getItem(NOTES_STORAGE_KEY) ?? ''
@@ -28,7 +39,7 @@ export default function AffinityBoard({ onNavigate }) {
 
     try {
       const result = await generateThemes(notes)
-      replaceThemes(result)
+      replaceThemes(applyThemeRanking(result))
     } catch {
       setError('Failed to generate themes. Please try again.')
     } finally {
@@ -36,9 +47,32 @@ export default function AffinityBoard({ onNavigate }) {
     }
   }
 
+  const handleNewSession = () => {
+    clearThemes()
+    localStorage.removeItem(NOTES_STORAGE_KEY)
+    onNavigate('setup')
+  }
+
   return (
     <div className="min-h-screen bg-[#F5F4F0]">
       <div className="mx-auto max-w-5xl px-8 pt-12">
+        <div className="mb-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate('interview')}
+            className={ghostButtonClass}
+          >
+            ← Back to Interview
+          </button>
+          <button
+            type="button"
+            onClick={handleNewSession}
+            className={ghostButtonClass}
+          >
+            Start New Session
+          </button>
+        </div>
+
         <header className="mb-8">
           <p className="font-mono text-sm text-gray-400">03 — Affinity Board</p>
           <h1 className="mt-2 font-mono text-4xl font-normal text-gray-800">
@@ -92,10 +126,11 @@ export default function AffinityBoard({ onNavigate }) {
         </div>
 
         <div className="mt-8 grid grid-cols-3 gap-4">
-          {themes.map((theme) => (
+          {sortedThemes.map((theme, index) => (
             <StickyNote
               key={theme.id}
               theme={theme}
+              className={index === 0 ? 'col-span-2' : ''}
               onDelete={deleteTheme}
               onUpdateLabel={updateThemeLabel}
               onUpdateQuote={updateThemeQuote}

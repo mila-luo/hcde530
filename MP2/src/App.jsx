@@ -5,16 +5,27 @@ import AffinityBoard from './pages/AffinityBoard.jsx'
 
 function App() {
   const [page, setPage] = useState('setup')
+  const [affinityFreshSession, setAffinityFreshSession] = useState(false)
+
+  const handleNavigate = (nextPage, options = {}) => {
+    setAffinityFreshSession(nextPage === 'affinity' && options.fromInterview === true)
+    setPage(nextPage)
+  }
 
   if (page === 'interview') {
-    return <Interview onNavigate={setPage} />
+    return <Interview onNavigate={handleNavigate} />
   }
 
   if (page === 'affinity') {
-    return <AffinityBoard onNavigate={setPage} />
+    return (
+      <AffinityBoard
+        onNavigate={handleNavigate}
+        freshSession={affinityFreshSession}
+      />
+    )
   }
 
-  return <Setup onNavigate={setPage} />
+  return <Setup onNavigate={handleNavigate} />
 }
 
 export default App

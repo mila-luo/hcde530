@@ -35,6 +35,13 @@ export default function Interview({ onNavigate }) {
     <div className="flex h-screen flex-col bg-[#F5F4F0]">
       <header className="flex flex-row items-center justify-between px-8 py-4">
         <div>
+          <button
+            type="button"
+            onClick={() => onNavigate('setup')}
+            className="mb-2 rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-white"
+          >
+            ← Back to Setup
+          </button>
           <p className="font-mono text-sm text-gray-400">02 — Interview</p>
           <h1 className="font-mono text-xl font-bold text-gray-800">
             Active Session
@@ -139,7 +146,7 @@ export default function Interview({ onNavigate }) {
       <button
         type="button"
         disabled={!hasNotes}
-        onClick={() => onNavigate('affinity')}
+        onClick={() => onNavigate('affinity', { fromInterview: true })}
         className="w-full bg-[#4A5568] py-4 text-white transition-colors enabled:hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-40"
       >
         Finish Interview & Generate Themes →

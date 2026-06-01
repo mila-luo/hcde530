@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { INITIAL_THEMES } from '../lib/themes.js'
 
 export function useAffinity() {
-  const [themes, setThemes] = useState(INITIAL_THEMES)
+  const [themes, setThemes] = useState([])
 
   const addTheme = () => {
     setThemes((current) => [
@@ -10,7 +9,8 @@ export function useAffinity() {
       {
         id: crypto.randomUUID(),
         label: 'New Theme',
-        color: '#FEF9C3',
+        color: '#FCE7F3',
+        count: 0,
         quotes: [],
       },
     ])
@@ -47,6 +47,10 @@ export function useAffinity() {
     setThemes(newThemes)
   }
 
+  const clearThemes = () => {
+    setThemes([])
+  }
+
   return {
     themes,
     addTheme,
@@ -54,5 +58,6 @@ export function useAffinity() {
     updateThemeLabel,
     updateThemeQuote,
     replaceThemes,
+    clearThemes,
   }
 }

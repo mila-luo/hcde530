@@ -1,3 +1,5 @@
+import { buildThemeClusteringPrompt } from './prompts.js'
+
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY
 
 async function callAI(prompt) {
@@ -27,7 +29,6 @@ export async function generateQuestions(topic, starterQuestions) {
 }
 
 export async function generateThemes(notes) {
-  const prompt = `You are a UX researcher doing affinity mapping. Cluster these interview notes into 3-5 themes. Return ONLY a valid JSON array, no markdown, no explanation. Each item: { "id": "unique string", "label": "Theme Name", "quotes": ["quote1", "quote2"], "color": one of ["#FEF9C3","#DBEAFE","#DCFCE7","#FCE7F3"] }. Notes: "${notes}"`
-  const text = await callAI(prompt)
+  const text = await callAI(buildThemeClusteringPrompt(notes))
   return JSON.parse(text)
 }
