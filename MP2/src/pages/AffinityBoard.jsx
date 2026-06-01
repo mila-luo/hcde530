@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import StickyNote from '../components/StickyNote.jsx'
 import { useAffinity } from '../hooks/useAffinity.js'
 import { generateThemes } from '../lib/claude.js'
@@ -22,49 +22,77 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
   const [inputMode, setInputMode] = useState('paste')
   const [pastedNotes, setPastedNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Generating...')
   const [error, setError] = useState('')
+  const boardRef = useRef(null)
+  const autoGenerateStarted = useRef(false)
 
-  useEffect(() => {
-    console.log('themes state changed:', themes)
-  }, [themes])
+  const [autoFlow] = useState(
+    () =>
+      freshSession &&
+      Boolean((localStorage.getItem(NOTES_STORAGE_KEY) || '').trim()),
+  )
 
-  const sortedThemes = applyThemeRanking(themes)
+  const runGenerateThemes = useCallback(
+    async (notes, message = 'Generating...') => {
+      if (!notes.trim()) {
+        setError('Please type notes or complete an interview session first.')
+        return false
+      }
+
+      setLoadingMessage(message)
+      setLoading(true)
+      setError(null)
+
+      try {
+        const result = await generateThemes(notes)
+        replaceThemes(result)
+        return true
+      } catch (err) {
+        console.error('Generate themes error:', err)
+        setError('Failed to generate themes. Please try again.')
+        return false
+      } finally {
+        setLoading(false)
+      }
+    },
+    [replaceThemes],
+  )
 
   const handleGenerateThemes = async () => {
-    setLoading(true)
-    setError(null)
+    const sessionNotes = localStorage.getItem(NOTES_STORAGE_KEY) || ''
+    const notes = inputMode === 'paste' ? pastedNotes : sessionNotes
+    await runGenerateThemes(notes)
+  }
 
-    const sessionNotes = localStorage.getItem('mp2_session_notes') || ''
-    const notes =
-      inputMode === 'paste' ? pastedNotes : sessionNotes
-
-    if (!notes.trim()) {
-      setError('Please type notes or complete an interview session first.')
-      setLoading(false)
+  useEffect(() => {
+    if (!freshSession || autoGenerateStarted.current) {
       return
     }
 
-    try {
-      console.log('Notes from localStorage:', sessionNotes)
-      console.log('Notes used for generation:', notes)
-      const result = await generateThemes(notes)
-      console.log('Result from generateThemes:', result)
-      console.log('Is array?', Array.isArray(result))
-      replaceThemes(result)
-      console.log('replaceThemes called')
-    } catch (err) {
-      console.error('Generate themes error:', err)
-      setError('Failed to generate themes. Please try again.')
-    } finally {
-      setLoading(false)
+    autoGenerateStarted.current = true
+    clearThemes()
+
+    const notes = localStorage.getItem(NOTES_STORAGE_KEY) || ''
+    if (notes.trim()) {
+      runGenerateThemes(notes, 'Analyzing your session notes...')
     }
-  }
+  }, [freshSession, clearThemes, runGenerateThemes])
+
+  useEffect(() => {
+    if (autoFlow && themes.length > 0) {
+      boardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [autoFlow, themes.length])
 
   const handleNewSession = () => {
     clearThemes()
     localStorage.removeItem(NOTES_STORAGE_KEY)
     onNavigate('setup')
   }
+
+  const sortedThemes = applyThemeRanking(themes)
+  const showInputCard = !autoFlow
 
   return (
     <div className="min-h-screen bg-[#F5F4F0]">
@@ -96,60 +124,71 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
           </p>
         </header>
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="font-bold text-gray-800">Input Source</span>
-
-            <div className="flex rounded-lg bg-gray-100 p-1">
-              <button
-                type="button"
-                onClick={() => setInputMode('paste')}
-                className={`rounded-md px-4 py-2 text-sm transition-colors ${
-                  inputMode === 'paste'
-                    ? 'bg-white text-gray-800 shadow-sm'
-                    : 'bg-transparent text-gray-600'
-                }`}
-              >
-                📄 Paste Notes
-              </button>
-              <button
-                type="button"
-                onClick={() => setInputMode('session')}
-                className={`rounded-md px-4 py-2 text-sm transition-colors ${
-                  inputMode === 'session'
-                    ? 'bg-white text-gray-800 shadow-sm'
-                    : 'bg-transparent text-gray-600'
-                }`}
-              >
-                ⬆ Upload Audio
-              </button>
-            </div>
+        {autoFlow && loading && (
+          <div className="mb-8 rounded-xl bg-white p-12 text-center shadow-sm">
+            <p className="font-mono text-gray-600">{loadingMessage}</p>
           </div>
+        )}
 
-          {inputMode === 'paste' && (
-            <textarea
-              value={pastedNotes}
-              onChange={(event) => setPastedNotes(event.target.value)}
-              placeholder="Paste your interview notes here..."
-              rows={6}
-              className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-            />
-          )}
+        {showInputCard && (
+          <div className="rounded-xl bg-white p-6 shadow-sm">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-bold text-gray-800">Input Source</span>
 
-          {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+              <div className="flex rounded-lg bg-gray-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('paste')}
+                  className={`rounded-md px-4 py-2 text-sm transition-colors ${
+                    inputMode === 'paste'
+                      ? 'bg-white text-gray-800 shadow-sm'
+                      : 'bg-transparent text-gray-600'
+                  }`}
+                >
+                  📄 Paste Notes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('session')}
+                  className={`rounded-md px-4 py-2 text-sm transition-colors ${
+                    inputMode === 'session'
+                      ? 'bg-white text-gray-800 shadow-sm'
+                      : 'bg-transparent text-gray-600'
+                  }`}
+                >
+                  ⬆ Upload Audio
+                </button>
+              </div>
+            </div>
 
-          <button
-            type="button"
-            onClick={handleGenerateThemes}
-            disabled={loading}
-            className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Generating...' : '✦ Generate Themes'}
-          </button>
-        </div>
+            {inputMode === 'paste' && (
+              <textarea
+                value={pastedNotes}
+                onChange={(event) => setPastedNotes(event.target.value)}
+                placeholder="Paste your interview notes here..."
+                rows={6}
+                className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+              />
+            )}
 
-        <div className="mt-8 grid grid-cols-3 gap-4">
-          {console.log('Rendering themes:', sortedThemes)}
+            {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+
+            <button
+              type="button"
+              onClick={handleGenerateThemes}
+              disabled={loading}
+              className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? loadingMessage : '✦ Generate Themes'}
+            </button>
+          </div>
+        )}
+
+        {!showInputCard && error && (
+          <p className="mb-4 text-sm text-red-600">{error}</p>
+        )}
+
+        <div ref={boardRef} className="mt-8 grid grid-cols-3 gap-4">
           {sortedThemes.map((theme, index) => (
             <StickyNote
               key={theme.id}

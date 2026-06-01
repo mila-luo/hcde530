@@ -4,6 +4,7 @@ import { GENERATED_QUESTIONS } from '../lib/questions.js'
 
 const NOTES_STORAGE_KEY = 'mp2_session_notes'
 const QUESTIONS_STORAGE_KEY = 'mp2_generated_questions'
+const AUDIO_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/m4a']
 
 function loadQuestions() {
   try {
@@ -18,18 +19,47 @@ function loadQuestions() {
   return GENERATED_QUESTIONS
 }
 
+function isAudioFile(file) {
+  if (AUDIO_TYPES.includes(file.type)) {
+    return true
+  }
+
+  return /\.(mp3|m4a)$/i.test(file.name)
+}
+
 export default function Interview({ onNavigate }) {
   const { formatted, isRunning, togglePause, reset } = useTimer({ autoStart: true })
   const [questions] = useState(loadQuestions)
   const [notes, setNotes] = useState(() => {
     return localStorage.getItem(NOTES_STORAGE_KEY) ?? ''
   })
+  const [isDragging, setIsDragging] = useState(false)
+  const [droppedFileName, setDroppedFileName] = useState('')
 
   useEffect(() => {
     localStorage.setItem(NOTES_STORAGE_KEY, notes)
   }, [notes])
 
   const hasNotes = notes.trim().length > 0
+
+  const handleDragOver = (event) => {
+    event.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (event) => {
+    event.preventDefault()
+    setIsDragging(false)
+
+    const file = event.dataTransfer.files?.[0]
+    if (file && isAudioFile(file)) {
+      setDroppedFileName(file.name)
+    }
+  }
 
   return (
     <div className="flex h-screen flex-col bg-[#F5F4F0]">
@@ -134,12 +164,41 @@ export default function Interview({ onNavigate }) {
             Capture observations, quotes, and insights from the interview
           </p>
 
+          <p className="mt-4 text-sm text-gray-600">
+            Type anything — raw observations, direct quotes, or messy notes. The
+            AI will organize it.
+          </p>
+
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             placeholder={`Start typing your notes here...\n\nExample format:\n• Quote: "I wasn't sure if the seller was legit"\n• Observation: Hesitated at checkout`}
-            className="mt-4 min-h-0 flex-1 resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            className="mt-3 min-h-0 flex-1 resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
           />
+
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`mt-3 rounded-lg border-2 border-dashed px-4 py-3 text-sm text-gray-500 transition-colors ${
+              isDragging
+                ? 'border-gray-400 bg-white'
+                : 'border-gray-200 bg-transparent'
+            }`}
+          >
+            <p>
+              You can also drag and drop an audio recording (.mp3, .m4a) here to
+              transcribe it automatically.
+            </p>
+            {droppedFileName && (
+              <div className="mt-2 text-gray-700">
+                <p className="font-medium">{droppedFileName}</p>
+                <p className="mt-1 text-gray-500">
+                  Audio transcription coming soon — paste notes manually for now
+                </p>
+              </div>
+            )}
+          </div>
         </section>
       </div>
 
