@@ -6,9 +6,11 @@ async function callAI(prompt) {
     headers: {
       Authorization: `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': 'http://localhost:5173',
+      'X-Title': 'ResearchFlow',
     },
     body: JSON.stringify({
-      model: 'deepseek/deepseek-chat-v3-0324:free',
+      model: 'openrouter/auto',
       messages: [{ role: 'user', content: prompt }],
     }),
   })
