@@ -1,0 +1,101 @@
+# Project: UX Research Interview Assistant + Affinity Mapper
+# A web app that helps UX researchers generate interview questions, run sessions, and build an affinity map from AI-generated or manually added themes.
+# Designed in Figma (mid-fidelity wireframes) first, then built in Cursor.
+
+## Project Overview
+Three-phase tool for UX researchers:
+1. **Setup** — enter a research topic and starter questions; Claude generates motivation-focused follow-up questions (WHY-oriented, not surface-level)
+2. **Interview** — display generated questions during the session alongside a typed notes panel and a session timer
+3. **Affinity Board** — AI clusters input (uploaded audio transcript via Whisper OR pasted raw notes) into themes displayed as sticky notes; researcher can manually add, edit, and delete themes
+
+## Design Process
+- UI is designed in Figma as mid-fidelity wireframes before any code is written
+- Figma wireframes are the source of truth for layout, spacing, and interaction model
+- Build in Cursor follows the Figma spec — do not invent layout decisions in code
+- Three screens are wireframed: Setup, Interview, Affinity Board
+- Affinity Board is the primary screen — it gets the most design attention
+
+## Stack
+- **Frontend**: React (Vite)
+- **Styling**: Tailwind CSS
+- **Design**: Figma (mid-fidelity wireframes)
+- **AI**: Anthropic Claude API (claude-sonnet-4-20250514) for question generation and theme clustering
+- **Transcription**: OpenAI Whisper API for audio file upload → transcript
+- **Drag and drop**: @dnd-kit/core (stretch goal only)
+- **State**: React useState / useReducer; no external state library unless complexity demands it
+- **Storage**: localStorage for session persistence; no backend required
+
+## File Structure
+```
+src/
+  components/
+    QuestionPanel.jsx         # displays AI-generated questions during interview
+    NotesPanel.jsx            # typed notes alongside questions
+    SessionTimer.jsx          # elapsed timer with start/pause/reset
+    AffinityBoard.jsx         # sticky-note grid with add, edit, delete
+    StickyNote.jsx            # individual theme card with label + quotes
+    ui/                       # shared atoms: Button, Card, Tag, Badge
+  lib/
+    claude.js                 # all Anthropic API calls
+    prompts.js                # prompt templates
+    whisper.js                # audio file upload + transcription logic
+  hooks/
+    useSession.js             # session state across all three phases
+    useAffinity.js            # theme CRUD and board state
+    useTimer.js               # session timer logic
+  pages/
+    Setup.jsx
+    Interview.jsx
+    AffinityBoard.jsx
+  App.jsx
+  main.jsx
+```
+
+## AI Integration Rules
+- All Anthropic API calls go through `lib/claude.js`
+- All Whisper calls go through `lib/whisper.js`
+- Never expose API keys in client code — use environment variables:
+  - `VITE_ANTHROPIC_API_KEY`
+  - `VITE_OPENAI_API_KEY`
+- Always handle loading, error, and empty states for every AI call
+- Prompt templates live in `lib/prompts.js` — keep them readable and iterable
+
+## Prompting Guidelines
+- **Question generation prompt**: take topic + starter questions → return array of 6–8 follow-up questions focused on uncovering participant motivations and "why" behind behaviors; avoid surface-level or yes/no questions
+- **Theme clustering prompt**: take transcript or raw notes → return array of theme objects: { id, label, quotes: [], color }; themes should reflect behavioral patterns and motivations, not just topics
+- Both prompts must return structured JSON so UI can render predictably
+
+## Affinity Board Rules
+- Initial themes are AI-generated but fully editable
+- Researcher can: add a new theme (blank sticky), edit theme label inline, delete a theme
+- Each sticky note shows: theme label + 1–2 supporting quotes from the transcript
+- Color coding: AI assigns a color per theme from a fixed pastel palette
+- Board layout: CSS grid for MVP — drag and drop is a stretch goal only
+- Input toggle at top: "Upload Audio" vs "Paste Notes" — both feed into the same Claude clustering prompt
+
+## Interview View Rules
+- Left panel: AI-generated questions (read-only, scrollable)
+- Right panel: free-form typed notes (textarea, auto-saves to localStorage)
+- Top bar: session timer (elapsed time, start/pause/reset)
+- No API calls during Interview view — purely local
+
+## UI / UX Principles
+- Match the Figma wireframes exactly for layout and information hierarchy
+- Setup and Interview: minimal, distraction-free, calm
+- Affinity Board: warmer, more visual — sticky note aesthetic with pastel colors
+- Desktop-first; mobile-friendly is a stretch goal
+
+## Do Not
+- Do not invent layout decisions in code — follow the Figma wireframes
+- Do not add live in-browser audio recording — audio is uploaded as a file after the session
+- Do not add user auth or a database
+- Do not add cross-participant comparison in MVP
+- Do not use Redux or Zustand
+- Do not hardcode any API keys
+- Do not make the affinity board drag-and-drop in MVP
+
+## Constraints & Assumptions
+- One researcher, one session at a time
+- Sessions persist in localStorage between page refreshes
+- The tool assists synthesis; the researcher has final control over all themes
+- Affinity board is the core deliverable — Setup and Interview views support it
