@@ -4,38 +4,45 @@ ResearchFlow is a web-based UX research assistant that helps researchers prepare
 
 ## What it does
 
-1. **Setup** — Enter a research topic and optional starter questions. The tool generates 6–8 motivation-focused follow-up questions using Claude AI.
-2. **Interview** — Run your session with generated questions on the left and a live notes panel on the right. A session timer tracks elapsed time. Notes auto-save to your browser.
-3. **Affinity Board** — After the session, paste your notes or upload an audio file. The tool transcribes the audio (via OpenAI Whisper) and clusters findings into themed sticky notes using Claude. You can edit theme labels inline, delete themes, and add new ones manually.
+**01 — Setup**
+Enter a research topic and optional starter questions. ResearchFlow generates 8 motivation-focused follow-up questions using AI, designed to uncover the "why" behind participant behaviors rather than surface-level responses.
+
+**02 — Interview**
+Run your session with AI-generated questions on the left and a live notes panel on the right. A session timer tracks elapsed time. Notes auto-save to your browser so nothing is lost.
+
+**03 — Affinity Board**
+After the session, paste your notes or type them in. The tool clusters your findings into themed sticky notes using AI. You can edit theme labels inline, delete themes that don't hold up, and add new ones manually.
 
 ## Who it's for
 
-UX researchers and design students who conduct qualitative interviews and need to move from raw session data to structured themes quickly — without relying on manual affinity mapping or bothering their networks for repeat participation.
+UX researchers and design students who conduct qualitative interviews and need to move from raw session data to structured themes quickly — without manual affinity mapping or relying on the same small network of contacts for every study.
 
-## How to run it
+## Live URL
+[https://hcde530.vercel.app/](https://hcde530.vercel.app/)
+
+## GitHub Repo
+[https://github.com/mila-luo/hcde530](https://github.com/mila-luo/hcde530)
+
+## How to run it locally
 
 ### Prerequisites
 - Node.js (v18+)
-- An Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
-- An OpenAI API key ([platform.openai.com](https://platform.openai.com)) for audio transcription
+- An OpenRouter API key ([openrouter.ai](https://openrouter.ai)) — free, no credit card required
 
 ### Setup
 ```bash
-git clone https://github.com/[your-username]/MP2.git
-cd MP2
+git clone https://github.com/mila-luo/hcde530.git
+cd hcde530/MP2
 npm install
 cp .env.example .env
-# Add your API keys to .env
+# Add your OpenRouter API key to .env
 npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Live URL
-[Add your deployment URL here after deploying to Vercel]
-
 ## Tech stack
 - React + Vite
 - Tailwind CSS
-- Anthropic Claude API (question generation + theme clustering)
-- OpenAI Whisper API (audio transcription)
+- OpenRouter API (free tier) → routes to best available free model
+- Designed in Figma (mid-fidelity wireframes) before implementation

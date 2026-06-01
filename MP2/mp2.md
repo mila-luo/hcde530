@@ -1,24 +1,20 @@
 # MP2 Competency Claims
 
-## Specification Engineering
-I wrote a structured `.cursorrules` file before writing any code that defined the project scope, file structure, component responsibilities, API integration rules, prompt templates, and explicit constraints (no auth, no database, no live recording). This file served as the working spec for every Cursor prompt I wrote throughout the build. The declaration went through multiple revision cycles based on instructor feedback, each time sharpening the problem statement, platform rationale, and interaction model.
+## 1. Specification Engineering
+I wrote a structured `.cursorrules` file before writing any code that defined the project scope, file structure, component responsibilities, API integration rules, prompt templates, and explicit constraints (no auth, no database, no live recording). This file served as the working spec for every Cursor prompt throughout the build. The declaration went through multiple revision cycles based on instructor feedback, each time sharpening the problem statement, platform rationale, and interaction model. The three-page app (Setup → Interview → Affinity Board) was fully scoped before a single component was written.
 
-## Prompt Engineering
-I designed two Claude prompt chains with structured JSON outputs:
-- A question generation prompt that takes a topic and starter questions and returns motivation-focused follow-up questions targeting the "why" behind participant behaviors
-- A theme clustering prompt that takes raw notes or a transcript and returns a structured array of theme objects with labels, supporting quotes, and color assignments
+## 2. Prompt Engineering
+I designed two AI prompt chains with structured JSON outputs:
+- A **question generation prompt** that takes a topic and starter questions and returns 8 motivation-focused follow-up questions targeting the "why" behind participant behaviors — not yes/no questions, not surface-level
+- A **theme clustering prompt** that takes raw interview notes and returns a structured array of theme objects with labels, supporting quotes, and color assignments
 
-Both prompts were iterated on with real examples before being wired into the interface.
+Both prompts explicitly instruct the model to return only valid JSON with no markdown or explanation, and both include a cleanup step (`replace(/```json|```/g, '')`) to handle model variance. The quality of generated questions — specific, motivation-focused, contextually relevant to the research topic — reflects deliberate prompt iteration.
 
-## AI Integration
-I integrated two external AI APIs into a React frontend:
-- Anthropic Claude API for question generation and affinity theme clustering
-- OpenAI Whisper API for audio file transcription
+## 3. AI Integration
+I integrated an external AI API (OpenRouter, routing to free models) into a React frontend through a single utility file (`src/lib/claude.js`). The integration handles two distinct use cases from one shared `callAI()` function. All API calls include loading states, error boundaries, and try/catch handling. The API key is managed via environment variables (`VITE_OPENROUTER_API_KEY`) and never exposed in client code. I debugged multiple model availability and rate limit issues, iterating through model IDs until finding a stable free-tier option.
 
-All API calls are routed through dedicated utility files (`lib/claude.js`, `lib/whisper.js`) with loading, error, and empty state handling on every call.
+## 4. Interface Design
+I designed the tool in Figma as mid-fidelity wireframes before writing any code, defining layout, information hierarchy, and interaction model for all three views. The Cursor build followed the Figma spec directly. The affinity board includes inline editing of both theme labels and quotes, deletion, and manual addition — making the AI output a starting point for researcher judgment, not a fixed result. The two-panel Interview layout, session timer, and localStorage persistence for notes all reflect deliberate interaction design decisions.
 
-## Interface Design
-I designed the tool in Figma as mid-fidelity wireframes before writing any code, defining the layout, information hierarchy, and interaction model for all three views. The affinity board includes inline editing, deletion, and manual addition of themes — making the AI output a starting point, not a fixed output.
-
-## HCD Problem Framing
-The tool is grounded in a real UX research pain point I experience: the manual, time-consuming process of affinity mapping after qualitative interviews. The scope decisions (typed notes over live recording, upload audio over in-browser capture, single session over multi-participant comparison) were all driven by feasibility within the two-week build window while keeping the core research workflow intact.
+## 5. HCD Problem Framing
+The tool addresses a real pain point: the time and social cost of manual affinity mapping after qualitative interviews. Every scope decision was grounded in research workflow reality — typed notes over live recording (reliability), file upload over in-browser capture (complexity), single session over multi-participant comparison (feasibility). The affinity board's edit/delete/add interactions reflect the HCD principle that AI output should support human judgment, not replace it.
