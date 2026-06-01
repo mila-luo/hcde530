@@ -44,6 +44,7 @@ export function useAffinity() {
   }
 
   const replaceThemes = (newThemes) => {
+    console.log('replaceThemes called with:', newThemes)
     setThemes(newThemes)
   }
 

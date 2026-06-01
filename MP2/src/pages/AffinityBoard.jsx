@@ -19,28 +19,41 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
     replaceThemes,
     clearThemes,
   } = useAffinity()
-  const [inputSource, setInputSource] = useState('paste')
+  const [inputMode, setInputMode] = useState('paste')
+  const [pastedNotes, setPastedNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (freshSession) {
-      clearThemes()
-    }
-  }, [freshSession, clearThemes])
+    console.log('themes state changed:', themes)
+  }, [themes])
 
   const sortedThemes = applyThemeRanking(themes)
 
   const handleGenerateThemes = async () => {
-    const notes = localStorage.getItem(NOTES_STORAGE_KEY) ?? ''
-
     setLoading(true)
-    setError('')
+    setError(null)
+
+    const sessionNotes = localStorage.getItem('mp2_session_notes') || ''
+    const notes =
+      inputMode === 'paste' ? pastedNotes : sessionNotes
+
+    if (!notes.trim()) {
+      setError('Please type notes or complete an interview session first.')
+      setLoading(false)
+      return
+    }
 
     try {
+      console.log('Notes from localStorage:', sessionNotes)
+      console.log('Notes used for generation:', notes)
       const result = await generateThemes(notes)
-      replaceThemes(applyThemeRanking(result))
-    } catch {
+      console.log('Result from generateThemes:', result)
+      console.log('Is array?', Array.isArray(result))
+      replaceThemes(result)
+      console.log('replaceThemes called')
+    } catch (err) {
+      console.error('Generate themes error:', err)
       setError('Failed to generate themes. Please try again.')
     } finally {
       setLoading(false)
@@ -90,9 +103,9 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
             <div className="flex rounded-lg bg-gray-100 p-1">
               <button
                 type="button"
-                onClick={() => setInputSource('paste')}
+                onClick={() => setInputMode('paste')}
                 className={`rounded-md px-4 py-2 text-sm transition-colors ${
-                  inputSource === 'paste'
+                  inputMode === 'paste'
                     ? 'bg-white text-gray-800 shadow-sm'
                     : 'bg-transparent text-gray-600'
                 }`}
@@ -101,9 +114,9 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
               </button>
               <button
                 type="button"
-                onClick={() => setInputSource('upload')}
+                onClick={() => setInputMode('session')}
                 className={`rounded-md px-4 py-2 text-sm transition-colors ${
-                  inputSource === 'upload'
+                  inputMode === 'session'
                     ? 'bg-white text-gray-800 shadow-sm'
                     : 'bg-transparent text-gray-600'
                 }`}
@@ -112,6 +125,16 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
               </button>
             </div>
           </div>
+
+          {inputMode === 'paste' && (
+            <textarea
+              value={pastedNotes}
+              onChange={(event) => setPastedNotes(event.target.value)}
+              placeholder="Paste your interview notes here..."
+              rows={6}
+              className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            />
+          )}
 
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
@@ -126,6 +149,7 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
         </div>
 
         <div className="mt-8 grid grid-cols-3 gap-4">
+          {console.log('Rendering themes:', sortedThemes)}
           {sortedThemes.map((theme, index) => (
             <StickyNote
               key={theme.id}
