@@ -1,18 +1,31 @@
 import { useState } from 'react'
+import { generateQuestions } from '../lib/claude.js'
 
-const GENERATED_QUESTIONS = [
-  'Can you walk me through the last time you bought something on TikTok Shop?',
-  'What made you decide to complete that purchase instead of leaving?',
-  'What almost stopped you from buying?',
-  'How did you feel when you first saw the product in your feed?',
-  'What would have made you trust the seller more?',
-  'How does buying on TikTok Shop feel compared to other places you shop?',
-  'What part of the process felt the most unfamiliar or uncomfortable?',
-  'If you could change one thing about the experience, what would it be?',
-]
+const QUESTIONS_STORAGE_KEY = 'mp2_generated_questions'
 
 export default function Setup({ onNavigate }) {
+  const [topic, setTopic] = useState('')
+  const [starterQuestions, setStarterQuestions] = useState('')
+  const [questions, setQuestions] = useState([])
   const [showQuestions, setShowQuestions] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleGenerate = async () => {
+    setLoading(true)
+    setError('')
+
+    try {
+      const result = await generateQuestions(topic, starterQuestions)
+      setQuestions(result)
+      localStorage.setItem(QUESTIONS_STORAGE_KEY, JSON.stringify(result))
+      setShowQuestions(true)
+    } catch {
+      setError('Failed to generate questions. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F4F0]">
@@ -37,6 +50,8 @@ export default function Setup({ onNavigate }) {
           <input
             id="research-topic"
             type="text"
+            value={topic}
+            onChange={(event) => setTopic(event.target.value)}
             placeholder="Exploring user friction in TikTok Shop"
             className="mb-6 w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
           />
@@ -51,28 +66,37 @@ export default function Setup({ onNavigate }) {
           <textarea
             id="starter-questions"
             rows={4}
+            value={starterQuestions}
+            onChange={(event) => setStarterQuestions(event.target.value)}
             className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
           />
 
+          {error && (
+            <p className="mb-4 text-sm text-red-600">{error}</p>
+          )}
+
           <button
             type="button"
-            onClick={() => setShowQuestions(true)}
-            className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654]"
+            onClick={handleGenerate}
+            disabled={loading}
+            className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            ✦ Generate Interview Goal and Follow-up Questions
+            {loading
+              ? 'Generating...'
+              : '✦ Generate Interview Goal and Follow-up Questions'}
           </button>
         </div>
 
-        {showQuestions && (
+        {showQuestions && questions.length > 0 && (
           <div className="mt-6 rounded-xl bg-white p-8 shadow-sm">
             <h2 className="mb-6 font-mono text-xl font-normal text-gray-800">
               Generated Questions
             </h2>
 
             <ul className="divide-y divide-gray-200">
-              {GENERATED_QUESTIONS.map((question, index) => (
+              {questions.map((question, index) => (
                 <li
-                  key={question}
+                  key={`${index}-${question}`}
                   className="flex gap-4 py-4 first:pt-0 last:pb-0"
                 >
                   <span className="shrink-0 font-mono text-sm text-gray-400">
