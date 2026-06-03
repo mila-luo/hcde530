@@ -18,7 +18,7 @@ After the session, paste your notes or type them in. The tool clusters your find
 UX researchers and design students who conduct qualitative interviews and need to move from raw session data to structured themes quickly — without manual affinity mapping or relying on the same small network of contacts for every study.
 
 ## Live URL
-[https://hcde530.vercel.app/](https://hcde530.vercel.app/)
+
 
 ## GitHub Repo
 [https://github.com/mila-luo/hcde530](https://github.com/mila-luo/hcde530)
@@ -46,3 +46,4 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - Tailwind CSS
 - OpenRouter API (free tier) → routes to best available free model
 - Designed in Figma (mid-fidelity wireframes) before implementation
+uxresearchagent.vercel.app
