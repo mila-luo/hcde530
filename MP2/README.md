@@ -19,17 +19,21 @@ UX researchers and design students who conduct qualitative interviews and need t
 
 ## Live URL
 
+[https://uxresearchagent.vercel.app/](https://uxresearchagent.vercel.app/)
 
 ## GitHub Repo
+
 [https://github.com/mila-luo/hcde530](https://github.com/mila-luo/hcde530)
 
 ## How to run it locally
 
 ### Prerequisites
+
 - Node.js (v18+)
 - An OpenRouter API key ([openrouter.ai](https://openrouter.ai)) — free, no credit card required
 
 ### Setup
+
 ```bash
 git clone https://github.com/mila-luo/hcde530.git
 cd hcde530/MP2
@@ -42,8 +46,9 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Tech stack
+
 - React + Vite
 - Tailwind CSS
 - OpenRouter API (free tier) → routes to best available free model
 - Designed in Figma (mid-fidelity wireframes) before implementation
-uxresearchagent.vercel.app
+
