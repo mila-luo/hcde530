@@ -21,6 +21,8 @@ UX researchers and design students who conduct qualitative interviews and need t
 
 [https://uxresearchagent.vercel.app/](https://uxresearchagent.vercel.app/)
 
+The app is deployed and publicly accessible using [Vercel](https://vercel.com).
+
 ## GitHub Repo
 
 [https://github.com/mila-luo/hcde530](https://github.com/mila-luo/hcde530)
