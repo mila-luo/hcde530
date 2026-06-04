@@ -51,6 +51,36 @@
   animation: fade-up 0.4s ease forwards;
 }
 
+.landing-fade-up {
+  animation: fade-up 0.5s ease forwards;
+  opacity: 0;
+}
+
+@keyframes letter-pop {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-blue {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(66, 133, 244, 0);
+  }
+}
+
+.btn-hero-pulse {
+  animation: pulse-blue 2s ease infinite;
+}
+
 @layer base {
   body {
     font-family: 'Inter', 'Google Sans', system-ui, -apple-system, sans-serif;

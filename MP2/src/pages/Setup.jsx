@@ -11,18 +11,120 @@ const HOW_IT_WORKS = [
     title: 'Generate Questions',
     description:
       'Enter your topic and get motivation-focused interview questions instantly',
+    accent: '#4285F4',
+    glow: 'rgba(66, 133, 244, 0.3)',
   },
   {
     emoji: '📝',
     title: 'Run Your Interview',
     description: 'Use your questions as a guide while taking live session notes',
+    accent: '#EA4335',
+    glow: 'rgba(234, 67, 53, 0.3)',
   },
   {
     emoji: '🗺️',
     title: 'Map Your Themes',
     description: 'AI clusters your notes into an editable affinity map automatically',
+    accent: '#34A853',
+    glow: 'rgba(52, 168, 83, 0.3)',
   },
 ]
+
+function AnimatedWordmark() {
+  const letters = 'ResearchFlow'.split('')
+
+  return (
+    <h1 className="text-5xl font-bold text-[#4285F4]">
+      <span
+        className="inline-block opacity-0"
+        style={{
+          animation: 'letter-pop 0.4s ease forwards',
+          animationDelay: '0s',
+        }}
+      >
+        ✦{' '}
+      </span>
+      {letters.map((char, index) => (
+        <span
+          key={`${char}-${index}`}
+          className="inline-block opacity-0"
+          style={{
+            animation: 'letter-pop 0.4s ease forwards',
+            animationDelay: `${(index + 1) * 0.05}s`,
+          }}
+        >
+          {char}
+        </span>
+      ))}
+    </h1>
+  )
+}
+
+function LandingView({ onStartSession }) {
+  return (
+    <section className="relative min-h-screen overflow-hidden bg-white">
+      <div
+        className="pointer-events-none absolute left-0 top-0 z-0 h-[300px] w-[300px] -translate-x-1/4 -translate-y-1/4 rounded-full bg-[#4285F4]/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute right-0 top-0 z-0 h-[250px] w-[250px] translate-x-1/4 -translate-y-1/4 rounded-full bg-[#FBBC05]/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 left-1/2 z-0 h-[200px] w-[200px] -translate-x-1/2 translate-y-1/4 rounded-full bg-[#34A853]/[0.08] blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 py-16">
+        <div className="landing-fade-up w-full text-center" style={{ animationDelay: '0s' }}>
+          <AnimatedWordmark />
+        </div>
+
+        <p
+          className="landing-fade-up mx-auto mt-4 max-w-lg text-center text-xl text-gray-500"
+          style={{ animationDelay: '0.2s' }}
+        >
+          From conversation to clarity — AI-powered interview research
+        </p>
+
+        <div className="mt-12 grid w-full grid-cols-1 gap-6 md:grid-cols-3">
+          {HOW_IT_WORKS.map((step, index) => (
+            <div
+              key={step.title}
+              className="landing-fade-up rounded-2xl border-t-4 bg-white p-8 text-left shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              style={{
+                animationDelay: `${0.4 + index * 0.1}s`,
+                borderTopColor: step.accent,
+              }}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.boxShadow = `0 12px 40px ${step.glow}`
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.boxShadow = ''
+              }}
+            >
+              <span className="text-3xl" aria-hidden="true">
+                {step.emoji}
+              </span>
+              <h2 className="mt-4 text-lg font-bold text-[#202124]">{step.title}</h2>
+              <p className="mt-2 text-sm text-gray-600">{step.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={onStartSession}
+          className="btn-primary btn-hero-pulse landing-fade-up mt-12 px-10 py-4 text-lg transition-transform hover:scale-105"
+          style={{ animationDelay: '0.6s' }}
+        >
+          Start a Session →
+        </button>
+      </div>
+    </section>
+  )
+}
 
 function LoadingDots() {
   return (
@@ -124,55 +226,36 @@ export default function Setup({ onNavigate }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-5xl px-6 pt-6">
-        <NavWordmark onNavigate={() => setView('landing')} />
+      {isLanding && (
+        <div className="absolute left-6 top-6 z-20">
+          <NavWordmark onNavigate={() => setView('landing')} />
+        </div>
+      )}
 
-        <div className="relative">
-          <div
-            className={`transition-opacity duration-300 ${
-              isLanding
-                ? 'relative z-10 opacity-100'
-                : 'pointer-events-none absolute inset-x-0 top-0 z-0 opacity-0'
-            }`}
-            aria-hidden={!isLanding}
-          >
-            <section className="pb-10 pt-10 text-center">
-              <h1 className="text-3xl font-bold text-[#4285F4]">✦ ResearchFlow</h1>
-              <p className="mx-auto mt-3 max-w-xl text-lg text-gray-600">
-                From conversation to clarity — AI-powered interview research
-              </p>
+      <div className="relative">
+        <div
+          className={`transition-opacity duration-300 ${
+            isLanding
+              ? 'relative z-10 opacity-100'
+              : 'pointer-events-none absolute inset-x-0 top-0 z-0 opacity-0'
+          }`}
+          aria-hidden={!isLanding}
+        >
+          <LandingView onStartSession={() => setView('setup')} />
+        </div>
 
-              <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-                {HOW_IT_WORKS.map((step) => (
-                  <div key={step.title} className="card p-6 text-left">
-                    <span className="text-2xl" aria-hidden="true">
-                      {step.emoji}
-                    </span>
-                    <h2 className="mt-3 font-semibold text-[#202124]">{step.title}</h2>
-                    <p className="mt-2 text-sm text-gray-600">{step.description}</p>
-                  </div>
-                ))}
-              </div>
+        <div
+          className={`transition-opacity duration-300 ${
+            isSetup
+              ? 'relative z-10 opacity-100'
+              : 'pointer-events-none absolute inset-x-0 top-0 z-0 opacity-0'
+          }`}
+          aria-hidden={!isSetup}
+        >
+          <div className="mx-auto max-w-5xl px-6 pb-12 pt-6">
+            <NavWordmark onNavigate={() => setView('landing')} />
 
-              <button
-                type="button"
-                onClick={() => setView('setup')}
-                className="btn-primary mt-8"
-              >
-                Start a Session →
-              </button>
-            </section>
-          </div>
-
-          <div
-            className={`transition-opacity duration-300 ${
-              isSetup
-                ? 'relative z-10 opacity-100'
-                : 'pointer-events-none absolute inset-x-0 top-0 z-0 opacity-0'
-            }`}
-            aria-hidden={!isSetup}
-          >
-            <div className="mx-auto max-w-4xl pb-12 pt-4">
+            <div className="mx-auto max-w-4xl pt-4">
               <button
                 type="button"
                 onClick={() => setView('landing')}
