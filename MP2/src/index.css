@@ -1,3 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --google-blue: #4285f4;
+  --google-red: #ea4335;
+  --google-yellow: #fbbc05;
+  --google-green: #34a853;
+  --sticky-blue: #e8f0fe;
+  --sticky-red: #fce8e6;
+  --sticky-yellow: #fef7e0;
+  --sticky-green: #e6f4ea;
+  --border-light: #e0e0e0;
+}
+
+@keyframes bounce-dot {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.4s ease forwards;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', 'Google Sans', system-ui, -apple-system, sans-serif;
+    background-color: #ffffff;
+    color: #202124;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white shadow-md;
+  }
+
+  .btn-primary {
+    @apply rounded-full bg-[#4285F4] px-6 py-3 font-medium text-white shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply rounded-full border border-[#4285F4] bg-transparent px-4 py-1.5 text-sm font-medium text-[#4285F4] transition-all hover:bg-[#E8F0FE];
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-[#E0E0E0] px-4 py-3 text-[#202124] placeholder:text-gray-400 transition-colors focus:border-[#4285F4] focus:outline-none focus:ring-2 focus:ring-[#4285F4]/20;
+  }
+}

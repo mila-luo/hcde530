@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getLabelColor } from '../lib/themes.js'
 
 function resizeTextarea(textarea) {
   textarea.style.height = 'auto'
@@ -21,6 +22,7 @@ function truncateQuote(quote, maxWords = 20) {
 export default function StickyNote({
   theme,
   className = '',
+  animationDelay = 0,
   onDelete,
   onUpdateLabel,
   onUpdateQuote,
@@ -32,6 +34,8 @@ export default function StickyNote({
   )
   const [draftQuotes, setDraftQuotes] = useState(() => [...theme.quotes])
   const quoteRefs = useRef([])
+
+  const labelColor = getLabelColor(theme.color)
 
   useEffect(() => {
     setDraftLabel(theme.label)
@@ -75,8 +79,12 @@ export default function StickyNote({
 
   return (
     <article
-      className={`rounded-xl p-5 ${className}`}
-      style={{ backgroundColor: theme.color }}
+      className={`group fade-up rounded-2xl p-5 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg ${className}`}
+      style={{
+        backgroundColor: theme.color,
+        animationDelay: `${animationDelay}s`,
+        opacity: 0,
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -92,7 +100,8 @@ export default function StickyNote({
                 }
               }}
               autoFocus
-              className="min-w-0 w-full border-none bg-transparent p-0 font-mono text-sm font-medium text-gray-800 outline-none focus:outline-none focus:ring-0"
+              className="min-w-0 w-full border-none bg-transparent p-0 text-base font-bold outline-none focus:outline-none focus:ring-0"
+              style={{ color: labelColor }}
             />
           ) : (
             <span
@@ -104,14 +113,17 @@ export default function StickyNote({
                   setIsEditing(true)
                 }
               }}
-              className="block cursor-pointer font-mono text-sm font-medium text-gray-800"
+              className="block cursor-pointer text-base font-bold"
+              style={{ color: labelColor }}
             >
               {theme.label}
             </span>
           )}
 
           {theme.count != null && (
-            <p className="mt-1 text-xs text-gray-500">{mentionLabel}</p>
+            <span className="mt-2 inline-block rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-600 shadow-sm">
+              {mentionLabel}
+            </span>
           )}
         </div>
 
@@ -119,7 +131,7 @@ export default function StickyNote({
           type="button"
           onClick={() => onDelete(theme.id)}
           aria-label={`Delete ${theme.label}`}
-          className="shrink-0 rounded p-1 text-gray-500 transition-colors hover:bg-white/60 hover:text-gray-800"
+          className="shrink-0 rounded-full p-1.5 text-gray-400 opacity-0 transition-all hover:bg-white/80 hover:text-[#EA4335] group-hover:opacity-100"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -139,11 +151,11 @@ export default function StickyNote({
         </button>
       </div>
 
-      <div className="my-3 border-t border-gray-400/30" />
+      <div className="my-3 border-t border-black/10" />
 
       <div className="space-y-2 text-sm font-normal text-gray-700">
         {theme.quotes.map((quote, quoteIndex) => {
-          const { display, isTruncated } = truncateQuote(quote)
+          const { display } = truncateQuote(quote)
 
           return editingQuotes[quoteIndex] ? (
             <textarea
@@ -177,7 +189,7 @@ export default function StickyNote({
               key={`${theme.id}-quote-${quoteIndex}`}
               role="button"
               tabIndex={0}
-              title={isTruncated ? quote : undefined}
+              title={quote}
               onClick={() => startEditingQuote(quoteIndex)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {

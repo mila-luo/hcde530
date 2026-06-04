@@ -27,6 +27,6 @@ export async function generateQuestions(topic, starterQuestions) {
 }
 
 export async function generateThemes(notes) {
-  const text = await callAI(`You are a UX researcher doing affinity mapping. Cluster these interview notes into 3-5 themes. Return ONLY a valid JSON array, no markdown, no code fences, no explanation. Each item: { "id": "unique string", "label": "Theme Name", "quotes": ["quote1", "quote2"], "color": one of ["#FEF9C3","#DBEAFE","#DCFCE7","#FCE7F3"], "count": number of distinct quotes or moments supporting this theme }. Notes: "${notes}"`)
+  const text = await callAI(`You are a UX researcher doing affinity mapping. Cluster these interview notes into 3-5 themes. Return ONLY a valid JSON array, no markdown, no code fences, no explanation. Each item: { "id": "unique string", "label": "Theme Name", "quotes": ["quote1", "quote2"], "color": one of ["#E8F0FE","#FCE8E6","#FEF7E0","#E6F4EA"], "count": number of distinct quotes or moments supporting this theme }. Notes: "${notes}"`)
   return JSON.parse(text)
 }

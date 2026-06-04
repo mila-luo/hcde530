@@ -6,8 +6,36 @@ import { applyThemeRanking } from '../lib/themes.js'
 
 const NOTES_STORAGE_KEY = 'mp2_session_notes'
 
-const ghostButtonClass =
-  'rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-white'
+const GOOGLE_LOADING_COLORS = ['#4285F4', '#EA4335', '#FBBC05']
+
+function OrganizingLoader() {
+  return (
+    <div className="card flex flex-col items-center justify-center p-16 text-center">
+      <span
+        style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {GOOGLE_LOADING_COLORS.map((color, i) => (
+          <span
+            key={color}
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              background: color,
+              animation: `bounce-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </span>
+      <p className="mt-6 text-gray-500">Organizing your insights...</p>
+    </div>
+  )
+}
 
 export default function AffinityBoard({ onNavigate, freshSession = false }) {
   const {
@@ -22,7 +50,6 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
   const [inputMode, setInputMode] = useState('paste')
   const [pastedNotes, setPastedNotes] = useState('')
   const [loading, setLoading] = useState(false)
-  const [loadingMessage, setLoadingMessage] = useState('Generating...')
   const [error, setError] = useState('')
   const boardRef = useRef(null)
   const autoGenerateStarted = useRef(false)
@@ -34,13 +61,12 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
   )
 
   const runGenerateThemes = useCallback(
-    async (notes, message = 'Generating...') => {
+    async (notes) => {
       if (!notes.trim()) {
         setError('Please type notes or complete an interview session first.')
         return false
       }
 
-      setLoadingMessage(message)
       setLoading(true)
       setError(null)
 
@@ -75,7 +101,7 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
 
     const notes = localStorage.getItem(NOTES_STORAGE_KEY) || ''
     if (notes.trim()) {
-      runGenerateThemes(notes, 'Analyzing your session notes...')
+      runGenerateThemes(notes)
     }
   }, [freshSession, clearThemes, runGenerateThemes])
 
@@ -93,30 +119,27 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
 
   const sortedThemes = applyThemeRanking(themes)
   const showInputCard = !autoFlow
+  const showAutoLoader = autoFlow && loading
 
   return (
-    <div className="min-h-screen bg-[#F5F4F0]">
+    <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-5xl px-8 pt-12">
         <div className="mb-4 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => onNavigate('interview')}
-            className={ghostButtonClass}
+            className="btn-ghost"
           >
             ← Back to Interview
           </button>
-          <button
-            type="button"
-            onClick={handleNewSession}
-            className={ghostButtonClass}
-          >
+          <button type="button" onClick={handleNewSession} className="btn-ghost">
             Start New Session
           </button>
         </div>
 
         <header className="mb-8">
-          <p className="font-mono text-sm text-gray-400">03 — Affinity Board</p>
-          <h1 className="mt-2 font-mono text-4xl font-normal text-gray-800">
+          <p className="text-sm font-medium text-[#4285F4]">03 — Affinity Board</p>
+          <h1 className="mt-2 text-4xl font-semibold text-[#202124]">
             Theme Analysis
           </h1>
           <p className="mt-3 text-gray-600">
@@ -124,24 +147,20 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
           </p>
         </header>
 
-        {autoFlow && loading && (
-          <div className="mb-8 rounded-xl bg-white p-12 text-center shadow-sm">
-            <p className="font-mono text-gray-600">{loadingMessage}</p>
-          </div>
-        )}
+        {showAutoLoader && <OrganizingLoader />}
 
-        {showInputCard && (
-          <div className="rounded-xl bg-white p-6 shadow-sm">
+        {showInputCard && !loading && (
+          <div className="card p-6">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <span className="font-bold text-gray-800">Input Source</span>
+              <span className="font-semibold text-[#202124]">Input Source</span>
 
-              <div className="flex rounded-lg bg-gray-100 p-1">
+              <div className="flex rounded-full bg-[#F1F3F4] p-1">
                 <button
                   type="button"
                   onClick={() => setInputMode('paste')}
-                  className={`rounded-md px-4 py-2 text-sm transition-colors ${
+                  className={`rounded-full px-4 py-2 text-sm transition-all ${
                     inputMode === 'paste'
-                      ? 'bg-white text-gray-800 shadow-sm'
+                      ? 'bg-white text-[#202124] shadow-sm'
                       : 'bg-transparent text-gray-600'
                   }`}
                 >
@@ -150,9 +169,9 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
                 <button
                   type="button"
                   onClick={() => setInputMode('session')}
-                  className={`rounded-md px-4 py-2 text-sm transition-colors ${
+                  className={`rounded-full px-4 py-2 text-sm transition-all ${
                     inputMode === 'session'
-                      ? 'bg-white text-gray-800 shadow-sm'
+                      ? 'bg-white text-[#202124] shadow-sm'
                       : 'bg-transparent text-gray-600'
                   }`}
                 >
@@ -167,25 +186,27 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
                 onChange={(event) => setPastedNotes(event.target.value)}
                 placeholder="Paste your interview notes here..."
                 rows={6}
-                className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                className="input-field mb-6 resize-none"
               />
             )}
 
-            {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+            {error && <p className="mb-4 text-sm text-[#EA4335]">{error}</p>}
 
             <button
               type="button"
               onClick={handleGenerateThemes}
               disabled={loading}
-              className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary w-full"
             >
-              {loading ? loadingMessage : '✦ Generate Themes'}
+              ✦ Generate Themes
             </button>
           </div>
         )}
 
+        {showInputCard && loading && <OrganizingLoader />}
+
         {!showInputCard && error && (
-          <p className="mb-4 text-sm text-red-600">{error}</p>
+          <p className="mb-4 text-sm text-[#EA4335]">{error}</p>
         )}
 
         <div ref={boardRef} className="mt-8 grid grid-cols-3 gap-4">
@@ -193,6 +214,7 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
             <StickyNote
               key={theme.id}
               theme={theme}
+              animationDelay={index * 0.1}
               className={index === 0 ? 'col-span-2' : ''}
               onDelete={deleteTheme}
               onUpdateLabel={updateThemeLabel}
@@ -204,9 +226,10 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
         <button
           type="button"
           onClick={addTheme}
-          className="mt-8 rounded-xl bg-white px-6 py-4 text-gray-800 shadow-sm transition-colors hover:bg-gray-50"
+          className="btn-primary mt-8 inline-flex items-center gap-2"
         >
-          + Add Theme
+          <span aria-hidden="true">+</span>
+          Add Theme
         </button>
       </div>
     </div>

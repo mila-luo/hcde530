@@ -1,7 +1,34 @@
 import { useState } from 'react'
 import { generateQuestions } from '../lib/claude.js'
+import { getGoogleColor } from '../lib/themes.js'
 
 const QUESTIONS_STORAGE_KEY = 'mp2_generated_questions'
+
+function LoadingDots() {
+  return (
+    <span
+      style={{
+        display: 'flex',
+        gap: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: 'white',
+            animation: `bounce-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </span>
+  )
+}
 
 export default function Setup({ onNavigate }) {
   const [topic, setTopic] = useState('')
@@ -28,11 +55,11 @@ export default function Setup({ onNavigate }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F4F0]">
+    <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-2xl px-6 pt-12">
         <header className="mb-8">
-          <p className="font-mono text-sm text-gray-400">01 — Setup</p>
-          <h1 className="mt-2 font-mono text-4xl font-normal text-gray-800">
+          <p className="text-sm font-medium text-[#4285F4]">01 — Setup</p>
+          <h1 className="mt-2 text-4xl font-semibold text-[#202124]">
             Research Setup
           </h1>
           <p className="mt-3 text-gray-600">
@@ -40,10 +67,10 @@ export default function Setup({ onNavigate }) {
           </p>
         </header>
 
-        <div className="rounded-xl bg-white p-8 shadow-sm">
+        <div className="card p-8">
           <label
             htmlFor="research-topic"
-            className="mb-2 block font-bold text-gray-800"
+            className="mb-2 block font-semibold text-[#202124]"
           >
             Research Topic
           </label>
@@ -53,12 +80,12 @@ export default function Setup({ onNavigate }) {
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
             placeholder="Exploring user friction in TikTok Shop"
-            className="mb-6 w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            className="input-field mb-6"
           />
 
           <label
             htmlFor="starter-questions"
-            className="mb-2 block font-bold text-gray-800"
+            className="mb-2 block font-semibold text-[#202124]"
           >
             Starter Questions{' '}
             <span className="font-normal text-gray-400">(optional)</span>
@@ -68,41 +95,42 @@ export default function Setup({ onNavigate }) {
             rows={4}
             value={starterQuestions}
             onChange={(event) => setStarterQuestions(event.target.value)}
-            className="mb-6 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            className="input-field mb-6 resize-none"
           />
 
-          {error && (
-            <p className="mb-4 text-sm text-red-600">{error}</p>
-          )}
+          {error && <p className="mb-4 text-sm text-[#EA4335]">{error}</p>}
 
           <button
             type="button"
             onClick={handleGenerate}
             disabled={loading}
-            className="w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary w-full"
           >
-            {loading
-              ? 'Generating...'
-              : '✦ Generate Interview Goal and Follow-up Questions'}
+            {loading ? (
+              <LoadingDots />
+            ) : (
+              '✦ Generate Interview Goal and Follow-up Questions'
+            )}
           </button>
         </div>
 
         {showQuestions && questions.length > 0 && (
-          <div className="mt-6 rounded-xl bg-white p-8 shadow-sm">
-            <h2 className="mb-6 font-mono text-xl font-normal text-gray-800">
+          <div className="card fade-up mt-6 p-8">
+            <h2 className="mb-6 text-xl font-semibold text-[#202124]">
               Generated Questions
             </h2>
 
-            <ul className="divide-y divide-gray-200">
+            <ul className="space-y-0">
               {questions.map((question, index) => (
                 <li
                   key={`${index}-${question}`}
-                  className="flex gap-4 py-4 first:pt-0 last:pb-0"
+                  className="flex gap-4 border-b border-[#E0E0E0] py-4 pl-4 first:pt-0 last:border-b-0 last:pb-0"
+                  style={{ borderLeft: `3px solid ${getGoogleColor(index)}` }}
                 >
-                  <span className="shrink-0 font-mono text-sm text-gray-400">
+                  <span className="shrink-0 text-sm font-medium text-gray-400">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <span className="text-gray-800">{question}</span>
+                  <span className="text-[#202124]">{question}</span>
                 </li>
               ))}
             </ul>
@@ -110,7 +138,7 @@ export default function Setup({ onNavigate }) {
             <button
               type="button"
               onClick={() => onNavigate('interview')}
-              className="mt-8 w-full rounded-lg bg-[#4A5568] py-3 text-white transition-colors hover:bg-[#3d4654]"
+              className="btn-primary mt-8 w-full"
             >
               Start Interview →
             </button>

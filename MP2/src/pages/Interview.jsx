@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTimer } from '../hooks/useTimer.js'
 import { GENERATED_QUESTIONS } from '../lib/questions.js'
+import { getGoogleColor } from '../lib/themes.js'
 
 const NOTES_STORAGE_KEY = 'mp2_session_notes'
 const QUESTIONS_STORAGE_KEY = 'mp2_generated_questions'
@@ -25,6 +26,19 @@ function isAudioFile(file) {
   }
 
   return /\.(mp3|m4a)$/i.test(file.name)
+}
+
+function QuestionBadge({ index }) {
+  const color = getGoogleColor(index)
+
+  return (
+    <span
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+      style={{ backgroundColor: color }}
+    >
+      {index + 1}
+    </span>
+  )
 }
 
 export default function Interview({ onNavigate }) {
@@ -62,30 +76,28 @@ export default function Interview({ onNavigate }) {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-[#F5F4F0]">
+    <div className="flex h-screen flex-col bg-white">
       <header className="flex flex-row items-center justify-between px-8 py-4">
         <div>
           <button
             type="button"
             onClick={() => onNavigate('setup')}
-            className="mb-2 rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-white"
+            className="btn-ghost mb-2"
           >
             ← Back to Setup
           </button>
-          <p className="font-mono text-sm text-gray-400">02 — Interview</p>
-          <h1 className="font-mono text-xl font-bold text-gray-800">
-            Active Session
-          </h1>
+          <p className="text-sm font-medium text-[#4285F4]">02 — Interview</p>
+          <h1 className="text-xl font-semibold text-[#202124]">Active Session</h1>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="font-mono text-3xl text-gray-800">{formatted}</span>
+          <span className="text-3xl font-semibold text-[#4285F4]">{formatted}</span>
 
           <button
             type="button"
             onClick={togglePause}
             aria-label={isRunning ? 'Pause timer' : 'Resume timer'}
-            className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-800"
+            className="rounded-full p-2 text-[#4285F4] transition-all hover:bg-[#E8F0FE]"
           >
             {isRunning ? (
               <svg
@@ -115,7 +127,7 @@ export default function Interview({ onNavigate }) {
             type="button"
             onClick={reset}
             aria-label="Reset timer"
-            className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-800"
+            className="rounded-full p-2 text-[#4285F4] transition-all hover:bg-[#E8F0FE]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -135,31 +147,27 @@ export default function Interview({ onNavigate }) {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 border-t border-gray-200">
-        <section className="w-[40%] overflow-y-auto border-r border-gray-200 px-8 py-6">
-          <h2 className="mb-4 font-mono text-lg font-bold text-gray-800">
+      <div className="flex min-h-0 flex-1 border-t border-[#E0E0E0]">
+        <section className="w-[40%] overflow-y-auto border-r border-[#E0E0E0] px-8 py-6">
+          <h2 className="mb-4 text-lg font-semibold text-[#202124]">
             Interview Questions
           </h2>
 
-          <ul>
+          <ul className="space-y-1">
             {questions.map((question, index) => (
               <li
                 key={question}
-                className="flex gap-4 border-b border-gray-200 py-3"
+                className="flex items-start gap-3 border-b border-[#E0E0E0] py-4"
               >
-                <span className="shrink-0 font-mono text-sm text-gray-400">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <span className="text-gray-800">{question}</span>
+                <QuestionBadge index={index} />
+                <span className="pt-1 text-[#202124]">{question}</span>
               </li>
             ))}
           </ul>
         </section>
 
         <section className="flex w-[60%] flex-col px-8 py-6">
-          <h2 className="font-mono text-lg font-bold text-gray-800">
-            Session Notes
-          </h2>
+          <h2 className="text-lg font-semibold text-[#202124]">Session Notes</h2>
           <p className="mt-1 text-sm text-gray-600">
             Capture observations, quotes, and insights from the interview
           </p>
@@ -173,17 +181,17 @@ export default function Interview({ onNavigate }) {
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             placeholder={`Start typing your notes here...\n\nExample format:\n• Quote: "I wasn't sure if the seller was legit"\n• Observation: Hesitated at checkout`}
-            className="mt-3 min-h-0 flex-1 resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+            className="input-field mt-3 min-h-0 flex-1 resize-none"
           />
 
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`mt-3 rounded-lg border-2 border-dashed px-4 py-3 text-sm text-gray-500 transition-colors ${
+            className={`mt-3 rounded-2xl border-2 border-dashed px-4 py-3 text-sm text-gray-500 transition-colors ${
               isDragging
-                ? 'border-gray-400 bg-white'
-                : 'border-gray-200 bg-transparent'
+                ? 'border-[#4285F4] bg-[#E8F0FE]'
+                : 'border-[#E0E0E0] bg-transparent'
             }`}
           >
             <p>
@@ -191,7 +199,7 @@ export default function Interview({ onNavigate }) {
               transcribe it automatically.
             </p>
             {droppedFileName && (
-              <div className="mt-2 text-gray-700">
+              <div className="mt-2 text-[#202124]">
                 <p className="font-medium">{droppedFileName}</p>
                 <p className="mt-1 text-gray-500">
                   Audio transcription coming soon — paste notes manually for now
@@ -206,7 +214,7 @@ export default function Interview({ onNavigate }) {
         type="button"
         disabled={!hasNotes}
         onClick={() => onNavigate('affinity', { fromInterview: true })}
-        className="w-full bg-[#4A5568] py-4 text-white transition-colors enabled:hover:bg-[#3d4654] disabled:cursor-not-allowed disabled:opacity-40"
+        className="btn-primary w-full rounded-none py-4 disabled:opacity-40"
       >
         Finish Interview & Generate Themes →
       </button>

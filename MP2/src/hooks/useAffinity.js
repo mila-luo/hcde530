@@ -9,7 +9,7 @@ export function useAffinity() {
       {
         id: crypto.randomUUID(),
         label: 'New Theme',
-        color: '#FCE7F3',
+        color: '#E8F0FE',
         count: 0,
         quotes: [],
       },
