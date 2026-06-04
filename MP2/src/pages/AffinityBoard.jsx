@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import NavWordmark from '../components/NavWordmark.jsx'
 import StickyNote from '../components/StickyNote.jsx'
 import { useAffinity } from '../hooks/useAffinity.js'
 import { generateThemes } from '../lib/claude.js'
@@ -123,8 +124,10 @@ export default function AffinityBoard({ onNavigate, freshSession = false }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-5xl px-8 pt-12">
-        <div className="mb-4 flex flex-wrap gap-3">
+      <div className="mx-auto max-w-5xl px-8 pt-6">
+        <NavWordmark onNavigate={onNavigate} />
+
+        <div className="mb-4 mt-4 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => onNavigate('interview')}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import NavWordmark from '../components/NavWordmark.jsx'
 import { useTimer } from '../hooks/useTimer.js'
 import { GENERATED_QUESTIONS } from '../lib/questions.js'
 import { getGoogleColor } from '../lib/themes.js'
@@ -77,6 +78,10 @@ export default function Interview({ onNavigate }) {
 
   return (
     <div className="flex h-screen flex-col bg-white">
+      <div className="border-b border-[#E0E0E0] px-8 py-3">
+        <NavWordmark onNavigate={onNavigate} />
+      </div>
+
       <header className="flex flex-row items-center justify-between px-8 py-4">
         <div>
           <button
