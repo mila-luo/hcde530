@@ -62,7 +62,7 @@ function AnimatedWordmark() {
 
 function LandingView({ onStartSession }) {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-white">
+    <section className="relative min-h-screen bg-white">
       <div
         className="pointer-events-none absolute left-0 top-0 z-0 h-[300px] w-[300px] -translate-x-1/4 -translate-y-1/4 rounded-full bg-[#4285F4]/10 blur-3xl"
         aria-hidden="true"
@@ -76,7 +76,7 @@ function LandingView({ onStartSession }) {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 py-16">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 py-20">
         <div className="landing-fade-up w-full text-center" style={{ animationDelay: '0s' }}>
           <AnimatedWordmark />
         </div>
@@ -116,8 +116,7 @@ function LandingView({ onStartSession }) {
         <button
           type="button"
           onClick={onStartSession}
-          className="btn-primary btn-hero-pulse landing-fade-up mt-12 px-10 py-4 text-lg transition-transform hover:scale-105"
-          style={{ animationDelay: '0.6s' }}
+          className="btn-primary landing-cta mt-12 shrink-0 px-10 py-4 text-lg transition-transform hover:scale-105"
         >
           Start a Session →
         </button>
